@@ -10,10 +10,7 @@ export const AccountIcon: FC<{
 	account: WalletAccount;
 	className?: string;
 }> = ({ account, className }) => {
-	if (
-		account.walletId.toLowerCase().includes("talisman") ||
-		account.platform === "solana"
-	) {
+	if (account.walletId.toLowerCase().includes("talisman")) {
 		return (
 			<TalismanOrb
 				seed={account.address}
