@@ -1,6 +1,7 @@
 {
   "name": "taohop",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "imports": {
     "#/*": "./src/*"
