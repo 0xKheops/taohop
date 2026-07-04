@@ -1,5 +1,5 @@
 import { ArrowDownUp, ExternalLink, LoaderCircle } from "lucide-react";
-import { type FC, useCallback, useMemo, useState } from "react";
+import { type FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
 	type AccountSelection,
 	useSelectionAddress,
 } from "./AccountField";
+import { rememberAccount, resolveAccountSelection } from "./accountPreselect";
 import type { ExecutionPhase } from "./executors/native";
 import { estimateEvmFee, estimateSubstrateFee } from "./executors/native";
 import { TokenSelect } from "./TokenSelect";
@@ -60,6 +61,36 @@ export const BridgeForm: FC<{
 	const { accounts } = useWallets();
 	const [fromSelection, setFromSelection] = useState<AccountSelection>(null);
 	const [destSelection, setDestSelection] = useState<AccountSelection>(null);
+
+	// preselect the best matching account; revalidate whenever the platform
+	// changes or wallets connect/disconnect
+	useEffect(() => {
+		setFromSelection((current) =>
+			resolveAccountSelection(current, fromPlatform, accounts, false),
+		);
+	}, [fromPlatform, accounts]);
+	useEffect(() => {
+		setDestSelection((current) =>
+			resolveAccountSelection(current, toPlatform, accounts, true),
+		);
+	}, [toPlatform, accounts]);
+
+	const handleFromSelectionChange = useCallback(
+		(selection: AccountSelection) => {
+			if (selection?.kind === "account")
+				rememberAccount(fromPlatform, selection.accountId);
+			setFromSelection(selection);
+		},
+		[fromPlatform],
+	);
+	const handleDestSelectionChange = useCallback(
+		(selection: AccountSelection) => {
+			if (selection?.kind === "account")
+				rememberAccount(toPlatform, selection.accountId);
+			setDestSelection(selection);
+		},
+		[toPlatform],
+	);
 
 	const fromAddress = useSelectionAddress(fromSelection);
 	const destAddress = useSelectionAddress(destSelection);
@@ -166,7 +197,6 @@ export const BridgeForm: FC<{
 						aria-label="Source token"
 						onChange={(value) => {
 							onParamsChange({ from: value, to, amount });
-							setFromSelection(null);
 							reset();
 						}}
 					/>
@@ -174,7 +204,7 @@ export const BridgeForm: FC<{
 						label="Select source account"
 						platform={fromPlatform}
 						selection={fromSelection}
-						onChange={setFromSelection}
+						onChange={handleFromSelectionChange}
 						ownedOnly
 					/>
 					<div className="flex items-center gap-2">
@@ -231,7 +261,6 @@ export const BridgeForm: FC<{
 						aria-label="Destination token"
 						onChange={(value) => {
 							onParamsChange({ from, to: value, amount });
-							setDestSelection(null);
 							reset();
 						}}
 					/>
@@ -239,7 +268,7 @@ export const BridgeForm: FC<{
 						label="Select destination"
 						platform={toPlatform}
 						selection={destSelection}
-						onChange={setDestSelection}
+						onChange={handleDestSelectionChange}
 					/>
 					{destAddress && destBalance != null && (
 						<div className="flex justify-end text-xs text-muted-foreground">
