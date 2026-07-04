@@ -2,7 +2,7 @@
 
 **Bridge TAO and vTAO across Bittensor, Bittensor EVM, Ethereum, Base and Solana** — live at [taohop.kheops.wtf](https://taohop.kheops.wtf).
 
-taohop is also a reference dapp for **[kheopskit](https://github.com/kheopskit/kheopskit)**: one wallet library connecting **Substrate, Ethereum and Solana wallets** from the same UI, with fully typed signers for each platform. If you want to build a dapp that spans all three ecosystems, this repo shows every wiring point.
+taohop is a reference dapp for **[kheopskit](https://github.com/kheopskit/kheopskit)**: one wallet library connecting **Substrate, Ethereum and Solana wallets** from the same UI, with fully typed signers for each platform. If you want to build a dapp that spans all three ecosystems, this repo shows every wiring point.
 
 ## The kheopskit showcase
 
