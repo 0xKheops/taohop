@@ -20,6 +20,22 @@ const PLATFORM_LABELS: Record<Platform, string> = {
 	solana: "Solana",
 };
 
+const SUGGESTED_WALLETS: Record<Platform, { name: string; url: string }[]> = {
+	polkadot: [
+		{ name: "Talisman", url: "https://talisman.xyz" },
+		{ name: "SubWallet", url: "https://subwallet.app" },
+	],
+	ethereum: [
+		{ name: "Talisman", url: "https://talisman.xyz" },
+		{ name: "MetaMask", url: "https://metamask.io" },
+		{ name: "Rabby", url: "https://rabby.io" },
+	],
+	solana: [
+		{ name: "Phantom", url: "https://phantom.com" },
+		{ name: "Solflare", url: "https://solflare.com" },
+	],
+};
+
 const getAccountName = (account: WalletAccount): string | undefined =>
 	"name" in account && typeof account.name === "string"
 		? account.name
@@ -243,7 +259,35 @@ const AccountSelectDrawerContent: FC<{
 						))}
 					</ul>
 				) : (
-					<div className="text-sm text-muted-foreground">No wallets found</div>
+					<div className="flex flex-col gap-2 text-sm text-muted-foreground">
+						<div>
+							No {platform ? `${PLATFORM_LABELS[platform]} ` : ""}wallet
+							detected. Install one to get started:
+						</div>
+						<ul className="flex flex-wrap gap-x-4 gap-y-1">
+							{(platform
+								? SUGGESTED_WALLETS[platform]
+								: [
+										...new Map(
+											Object.values(SUGGESTED_WALLETS)
+												.flat()
+												.map((w) => [w.name, w]),
+										).values(),
+									]
+							).map((w) => (
+								<li key={w.url}>
+									<a
+										href={w.url}
+										target="_blank"
+										rel="noreferrer"
+										className="underline hover:text-foreground"
+									>
+										{w.name}
+									</a>
+								</li>
+							))}
+						</ul>
+					</div>
 				)}
 			</div>
 			{!!filteredAccounts.length && (

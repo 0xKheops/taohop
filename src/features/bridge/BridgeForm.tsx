@@ -196,6 +196,19 @@ export const BridgeForm: FC<{
 		!insufficient &&
 		!isRunning;
 
+	// surface the first blocking condition as the button label
+	const blockedLabel = !route.ok
+		? "No route available"
+		: !fromAccount
+			? "Select source account"
+			: !destAddress
+				? "Select destination"
+				: !amountBase || amountBase <= 0n
+					? "Enter an amount"
+					: insufficient
+						? "Insufficient balance"
+						: null;
+
 	const mirrorInfo =
 		route.ok &&
 		route.steps[0]?.kind === "native-substrate-to-evm" &&
@@ -384,7 +397,7 @@ export const BridgeForm: FC<{
 						? "New transfer"
 						: status.state === "running"
 							? PHASE_LABELS[status.phase]
-							: "Transfer"}
+							: (blockedLabel ?? "Transfer")}
 				</Button>
 			</CardContent>
 		</Card>
