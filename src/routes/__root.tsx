@@ -3,6 +3,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { Github } from "lucide-react";
 import { ConnectButton } from "@/components/ConnectButton";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
@@ -27,6 +28,15 @@ function RootComponent() {
 					</span>
 				</div>
 				<div className="flex items-center gap-2">
+					<a
+						href="https://github.com/0xKheops/taohop"
+						target="_blank"
+						rel="noreferrer"
+						aria-label="Source code on GitHub"
+						className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+					>
+						<Github className="size-4" />
+					</a>
 					<ThemeToggle />
 					<ConnectButton />
 				</div>
