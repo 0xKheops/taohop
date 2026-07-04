@@ -42,7 +42,8 @@ export const useTokenBalance = (
 	useQuery({
 		queryKey: ["balance", token?.id, address],
 		enabled: !!token && !!address,
-		refetchInterval: 12_000,
+		// gentle: the public Bittensor EVM RPC rate-limits at 25 req/min
+		refetchInterval: 30_000,
 		queryFn: () => {
 			if (!token || !address) return null;
 			return fetchBalance(token, address);

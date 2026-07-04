@@ -1,6 +1,12 @@
 import { MultiAddress } from "@polkadot-api/descriptors";
 import type { PolkadotSigner } from "polkadot-api";
-import { encodeFunctionData, toHex, type WalletClient } from "viem";
+import {
+	encodeFunctionData,
+	publicActions,
+	type TransactionReceipt,
+	toHex,
+	type WalletClient,
+} from "viem";
 import { bittensorEvm } from "@/config/chains";
 import { evmToBittensorMirror, ss58ToPublicKey } from "@/lib/address";
 import { getBittensorApi } from "@/lib/clients/papi";
@@ -171,9 +177,23 @@ export const executeEvmToSubstrate = async ({
 	});
 
 	onPhase("broadcasting");
-	const receipt = await getEvmPublicClient(
-		"bittensorEvm",
-	).waitForTransactionReceipt({ hash: txHash });
+	// Poll the receipt through the wallet's own provider first: the public
+	// lite RPC rate-limits at 25 req/min, which receipt polling can exhaust.
+	let receipt: TransactionReceipt;
+	try {
+		receipt = await walletClient
+			.extend(publicActions)
+			.waitForTransactionReceipt({ hash: txHash, pollingInterval: 4_000 });
+	} catch {
+		receipt = await getEvmPublicClient(
+			"bittensorEvm",
+		).waitForTransactionReceipt({
+			hash: txHash,
+			pollingInterval: 10_000,
+			retryCount: 5,
+			timeout: 120_000,
+		});
+	}
 
 	if (receipt.status !== "success")
 		throw new Error(`Transaction reverted: ${txHash}`);

@@ -10,7 +10,8 @@ export const getEvmPublicClient = (chainKey: EvmChainKey): PublicClient => {
 	if (!client) {
 		client = createPublicClient({
 			chain: viemChains[chainKey],
-			transport: http(),
+			// spaced retries: the Bittensor lite RPC rate-limits at 25 req/min
+			transport: http(undefined, { retryCount: 3, retryDelay: 2_000 }),
 		}) as PublicClient;
 		clients.set(chainKey, client);
 	}
