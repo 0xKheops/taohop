@@ -1,28 +1,34 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { z } from "zod";
+import { TOKENS, type TokenId } from "@/config/tokens";
+import { BridgeForm } from "@/features/bridge/BridgeForm";
 
-export const Route = createFileRoute("/")({ component: Home });
+const tokenIds = Object.keys(TOKENS) as [TokenId, ...TokenId[]];
+
+const searchSchema = z.object({
+	from: z.enum(tokenIds).catch("bittensor:TAO"),
+	to: z.enum(tokenIds).catch("bittensorEvm:TAO"),
+	amount: z
+		.string()
+		.regex(/^\d*\.?\d*$/)
+		.catch(""),
+});
+
+export const Route = createFileRoute("/")({
+	validateSearch: searchSchema,
+	component: Home,
+});
 
 function Home() {
+	const { from, to, amount } = Route.useSearch();
+	const navigate = Route.useNavigate();
+
 	return (
-		<Card className="w-full max-w-md">
-			<CardHeader>
-				<CardTitle>Bridge</CardTitle>
-				<CardDescription>
-					Move TAO and vTAO across Bittensor, Ethereum, Base and Solana.
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<p className="text-sm text-muted-foreground">
-					Bridge form coming in M2.
-				</p>
-			</CardContent>
-		</Card>
+		<BridgeForm
+			from={from}
+			to={to}
+			amount={amount}
+			onParamsChange={(params) => navigate({ search: params, replace: true })}
+		/>
 	);
 }

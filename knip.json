@@ -7,12 +7,10 @@
   ],
   "project": ["src/**/*.{ts,tsx}"],
   "ignoreDependencies": [
-    "@polkadot-api/descriptors",
     "tailwindcss",
     "tw-animate-css",
     "@tailwindcss/typography",
     "@tanstack/react-form",
-    "zod",
     "@testing-library/dom",
     "@testing-library/react"
   ]
