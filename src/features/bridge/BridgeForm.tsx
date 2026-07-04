@@ -69,6 +69,7 @@ export const BridgeForm: FC<{
 
 	const route = useMemo(() => getRoute(from, to), [from, to]);
 	const { data: balance } = useTokenBalance(fromToken, fromAddress);
+	const { data: destBalance } = useTokenBalance(toToken, destAddress);
 
 	const decimals = uiDecimals(from);
 	const parsed = amount ? parseAmount(amount, decimals) : null;
@@ -233,6 +234,12 @@ export const BridgeForm: FC<{
 						selection={destSelection}
 						onChange={setDestSelection}
 					/>
+					{destAddress && destBalance != null && (
+						<div className="flex justify-end text-xs text-muted-foreground">
+							Balance: {formatAmount(destBalance, toToken.decimals, 6)}{" "}
+							{toToken.symbol}
+						</div>
+					)}
 				</div>
 
 				{!route.ok && (
