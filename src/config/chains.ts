@@ -16,6 +16,8 @@ export type ChainDef = {
 	platform: Platform;
 	logo: string;
 	explorerUrl: string;
+	/** Gas/fee currency of the chain. */
+	nativeCurrency: { symbol: string; decimals: number };
 };
 
 export const bittensorEvm = defineChain({
@@ -76,6 +78,7 @@ export const CHAINS: Record<ChainId, ChainDef> = {
 		platform: "polkadot",
 		logo: "/img/chains/bittensor.svg",
 		explorerUrl: "https://taostats.io",
+		nativeCurrency: { symbol: "TAO", decimals: 9 },
 	},
 	bittensorEvm: {
 		id: "bittensorEvm",
@@ -83,6 +86,7 @@ export const CHAINS: Record<ChainId, ChainDef> = {
 		platform: "ethereum",
 		logo: "/img/chains/bittensor-evm.svg",
 		explorerUrl: "https://evm.taostats.io",
+		nativeCurrency: { symbol: "TAO", decimals: 18 },
 	},
 	ethereum: {
 		id: "ethereum",
@@ -90,6 +94,7 @@ export const CHAINS: Record<ChainId, ChainDef> = {
 		platform: "ethereum",
 		logo: "/img/chains/ethereum.svg",
 		explorerUrl: "https://etherscan.io",
+		nativeCurrency: { symbol: "ETH", decimals: 18 },
 	},
 	base: {
 		id: "base",
@@ -97,6 +102,7 @@ export const CHAINS: Record<ChainId, ChainDef> = {
 		platform: "ethereum",
 		logo: "/img/chains/base.svg",
 		explorerUrl: "https://basescan.org",
+		nativeCurrency: { symbol: "ETH", decimals: 18 },
 	},
 	solana: {
 		id: "solana",
@@ -104,6 +110,7 @@ export const CHAINS: Record<ChainId, ChainDef> = {
 		platform: "solana",
 		logo: "/img/chains/solana.svg",
 		explorerUrl: "https://solscan.io",
+		nativeCurrency: { symbol: "SOL", decimals: 9 },
 	},
 };
 

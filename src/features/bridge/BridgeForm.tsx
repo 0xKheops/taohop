@@ -20,7 +20,7 @@ import type { ExecutionPhase } from "./executors/native";
 import { estimateEvmFee, estimateSubstrateFee } from "./executors/native";
 import { TokenSelect } from "./TokenSelect";
 import { useBridgeExecutor } from "./useBridgeExecutor";
-import { useTokenBalance } from "./useTokenBalance";
+import { useNativeBalance, useTokenBalance } from "./useTokenBalance";
 
 const PHASE_LABELS: Record<ExecutionPhase, string> = {
 	"switching-chain": "Switching network…",
@@ -109,6 +109,15 @@ export const BridgeForm: FC<{
 	const route = useMemo(() => getRoute(from, to), [from, to]);
 	const { data: balance } = useTokenBalance(fromToken, fromAddress);
 	const { data: destBalance } = useTokenBalance(toToken, destAddress);
+	// fees are paid in the chain's gas currency — show it when it differs
+	// from the transferred token
+	const paysFeesInBridgedToken = fromToken.kind === "native";
+	const { data: feeBalance } = useNativeBalance(
+		fromToken.chainId,
+		fromAddress,
+		!paysFeesInBridgedToken,
+	);
+	const feeCurrency = CHAINS[fromToken.chainId].nativeCurrency;
 
 	const hasOftStep =
 		route.ok && route.steps.some((s) => s.kind === "layerzero-oft");
@@ -237,7 +246,11 @@ export const BridgeForm: FC<{
 						</span>
 						<span>
 							{fromAddress && balance != null
-								? `Balance: ${formatAmount(balance, fromToken.decimals, 6)} ${fromToken.symbol}`
+								? `Balance: ${formatAmount(balance, fromToken.decimals, 6)} ${fromToken.symbol}${
+										!paysFeesInBridgedToken && feeBalance != null
+											? ` · Fees: ${formatAmount(feeBalance, feeCurrency.decimals, 6)} ${feeCurrency.symbol}`
+											: ""
+									}`
 								: ""}
 						</span>
 					</div>

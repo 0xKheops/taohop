@@ -1,6 +1,7 @@
 import { address as solanaAddress } from "@solana/kit";
 import { useQuery } from "@tanstack/react-query";
 import { erc20Abi } from "viem";
+import type { ChainId } from "@/config/chains";
 import type { TokenDef } from "@/config/tokens";
 import { getBittensorApi } from "@/lib/clients/papi";
 import { withSolanaRpc } from "@/lib/clients/solana";
@@ -68,5 +69,46 @@ export const useTokenBalance = (
 		queryFn: () => {
 			if (!token || !address) return null;
 			return fetchBalance(token, address);
+		},
+	});
+
+const fetchNativeBalance = async (
+	chainId: ChainId,
+	address: string,
+): Promise<bigint | null> => {
+	switch (chainId) {
+		case "bittensor": {
+			const account =
+				await getBittensorApi().query.System.Account.getValue(address);
+			return account.data.free;
+		}
+		case "bittensorEvm":
+		case "ethereum":
+		case "base":
+			return getEvmPublicClient(chainId).getBalance({
+				address: address as `0x${string}`,
+			});
+		case "solana": {
+			const res = await withSolanaRpc((rpc) =>
+				rpc.getBalance(solanaAddress(address)).send(),
+			);
+			return BigInt(res.value);
+		}
+	}
+};
+
+/** Balance of the chain's gas currency — the one that pays transaction fees. */
+export const useNativeBalance = (
+	chainId: ChainId | undefined,
+	address: string | undefined,
+	enabled = true,
+) =>
+	useQuery({
+		queryKey: ["balance", "native", chainId, address],
+		enabled: enabled && !!chainId && !!address,
+		refetchInterval: 30_000,
+		queryFn: () => {
+			if (!chainId || !address) return null;
+			return fetchNativeBalance(chainId, address);
 		},
 	});
