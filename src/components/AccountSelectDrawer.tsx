@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const PLATFORM_LABELS: Record<Platform, string> = {
-	polkadot: "Polkadot",
+	polkadot: "Substrate",
 	ethereum: "Ethereum",
 	solana: "Solana",
 };
