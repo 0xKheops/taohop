@@ -1,14 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
 	return (
-		<div className="p-8">
-			<h1 className="text-4xl font-bold">Welcome to TanStack Start</h1>
-			<p className="mt-4 text-lg">
-				Edit <code>src/routes/index.tsx</code> to get started.
-			</p>
-		</div>
+		<Card className="w-full max-w-md">
+			<CardHeader>
+				<CardTitle>Bridge</CardTitle>
+				<CardDescription>
+					Move TAO and vTAO across Bittensor, Ethereum, Base and Solana.
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<p className="text-sm text-muted-foreground">
+					Bridge form coming in M2.
+				</p>
+			</CardContent>
+		</Card>
 	);
 }

@@ -3,6 +3,8 @@ import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { ConnectButton } from "@/components/ConnectButton";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 import "../styles.css";
 
@@ -16,8 +18,17 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootComponent() {
 	return (
-		<>
-			<Outlet />
+		<div className="flex min-h-dvh flex-col">
+			<header className="flex h-14 shrink-0 items-center justify-between gap-2 px-4">
+				<div className="font-bold text-lg tracking-tight">taohop</div>
+				<div className="flex items-center gap-2">
+					<ThemeToggle />
+					<ConnectButton />
+				</div>
+			</header>
+			<main className="flex grow flex-col items-center px-4 py-6">
+				<Outlet />
+			</main>
 			<TanStackDevtools
 				config={{
 					position: "bottom-right",
@@ -33,6 +44,6 @@ function RootComponent() {
 					},
 				]}
 			/>
-		</>
+		</div>
 	);
 }

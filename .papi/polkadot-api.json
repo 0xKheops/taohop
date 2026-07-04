@@ -1,0 +1,12 @@
+{
+  "version": 0,
+  "descriptorPath": ".papi/descriptors",
+  "entries": {
+    "bittensor": {
+      "wsUrl": "wss://entrypoint-finney.opentensor.ai:443",
+      "metadata": ".papi/metadata/bittensor.scale",
+      "genesis": "0x2f0555cc76fc2840a25a6ea3b9637146806f1f44b090c175ffde2a7e5ab36c03",
+      "codeHash": "0x75297833c250463329dcf8c5a0acadefd7bb90b2387a8ef377280f10d62a7ee3"
+    }
+  }
+}

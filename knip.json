@@ -1,8 +1,13 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["src/routes/**/*.tsx", "src/components/ui/**/*.tsx"],
+  "entry": [
+    "src/routes/**/*.tsx",
+    "src/components/ui/**/*.tsx",
+    "src/config/*.ts"
+  ],
   "project": ["src/**/*.{ts,tsx}"],
   "ignoreDependencies": [
+    "@polkadot-api/descriptors",
     "tailwindcss",
     "tw-animate-css",
     "@tailwindcss/typography",
