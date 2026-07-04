@@ -256,11 +256,9 @@ export const BridgeForm: FC<{
 						</span>
 						<span>
 							{fromAddress && balance != null
-								? `Balance: ${formatAmount(balance, fromToken.decimals, 6)} ${fromToken.symbol}${
-										!paysFeesInBridgedToken && feeBalance != null
-											? ` · Fees: ${formatAmount(feeBalance, feeCurrency.decimals, 6)} ${feeCurrency.symbol}`
-											: ""
-									}`
+								? !paysFeesInBridgedToken && feeBalance != null
+									? `Balances: ${formatAmount(balance, fromToken.decimals, 6)} ${fromToken.symbol} · ${formatAmount(feeBalance, feeCurrency.decimals, 6)} ${feeCurrency.symbol}`
+									: `Balance: ${formatAmount(balance, fromToken.decimals, 6)} ${fromToken.symbol}`
 								: ""}
 						</span>
 					</div>
