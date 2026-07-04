@@ -144,15 +144,20 @@ export const executeSolanaOft = async ({
 		new web3.PublicKey(SOLANA_TAO_OFT.lookupTable),
 	);
 
+	// "confirmed" keeps the full ~60s validity window — the default (finalized)
+	// blockhash is ~32 slots stale and can expire while the user reviews the
+	// transaction in their wallet
 	const { value: latestBlockhash } = await withSolanaRpc((rpc) =>
-		rpc.getLatestBlockhash().send(),
+		rpc.getLatestBlockhash({ commitment: "confirmed" }).send(),
 	);
 
 	const message = new web3.TransactionMessage({
 		payerKey: ownerPk,
 		recentBlockhash: latestBlockhash.blockhash,
 		instructions: [
-			web3.ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }),
+			// OFT send CPIs through the LZ endpoint + ULN + executor programs and
+			// blows past 400k CUs; free to request more without a priority fee
+			web3.ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 }),
 			sendIx,
 		],
 	}).compileToV0Message(lookupTable ? [lookupTable] : []);
