@@ -20,7 +20,12 @@ function RootComponent() {
 	return (
 		<div className="flex min-h-dvh flex-col">
 			<header className="flex h-14 shrink-0 items-center justify-between gap-2 px-4">
-				<div className="font-bold text-lg tracking-tight">taohop</div>
+				<div className="flex items-center gap-2">
+					<img src="/favicon.svg" alt="" className="size-6" />
+					<span className="text-gradient-brand font-bold text-lg tracking-tight">
+						taohop
+					</span>
+				</div>
 				<div className="flex items-center gap-2">
 					<ThemeToggle />
 					<ConnectButton />
