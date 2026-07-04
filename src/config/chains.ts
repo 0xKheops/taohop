@@ -23,20 +23,51 @@ export const bittensorEvm = defineChain({
 	name: "Bittensor EVM",
 	nativeCurrency: { name: "TAO", symbol: "TAO", decimals: 18 },
 	rpcUrls: {
-		default: { http: ["https://lite.chain.opentensor.ai"] },
+		default: {
+			http: [
+				"https://lite.chain.opentensor.ai",
+				"https://bittensor.drpc.org",
+				"https://archive.chain.opentensor.ai",
+			],
+		},
 	},
 	blockExplorers: {
 		default: { name: "Taostats EVM", url: "https://evm.taostats.io" },
 	},
 });
 
-export const BITTENSOR_WSS = "wss://entrypoint-finney.opentensor.ai:443";
+/** Substrate WSS endpoints, in fallback order. PAPI rotates automatically. */
+export const BITTENSOR_WSS_ENDPOINTS = [
+	"wss://entrypoint-finney.opentensor.ai:443",
+	"wss://lite.chain.opentensor.ai",
+	"wss://bittensor-finney.api.onfinality.io/public-ws",
+	"wss://archive.chain.opentensor.ai",
+];
 
 export const viemChains = {
 	bittensorEvm,
 	ethereum: mainnet,
 	base,
 } as const;
+
+/** EVM RPC endpoints per chain, in fallback order (all probed & working). */
+export const EVM_RPC_URLS: Record<keyof typeof viemChains, string[]> = {
+	bittensorEvm: [
+		"https://lite.chain.opentensor.ai",
+		"https://bittensor.drpc.org",
+		"https://archive.chain.opentensor.ai",
+	],
+	ethereum: [
+		"https://ethereum-rpc.publicnode.com",
+		"https://1rpc.io/eth",
+		"https://eth.drpc.org",
+	],
+	base: [
+		"https://mainnet.base.org",
+		"https://base-rpc.publicnode.com",
+		"https://1rpc.io/base",
+	],
+};
 
 export const CHAINS: Record<ChainId, ChainDef> = {
 	bittensor: {

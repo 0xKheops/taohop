@@ -1,5 +1,5 @@
-import { createPublicClient, http, type PublicClient } from "viem";
-import { viemChains } from "@/config/chains";
+import { createPublicClient, fallback, http, type PublicClient } from "viem";
+import { EVM_RPC_URLS, viemChains } from "@/config/chains";
 
 export type EvmChainKey = keyof typeof viemChains;
 
@@ -10,8 +10,13 @@ export const getEvmPublicClient = (chainKey: EvmChainKey): PublicClient => {
 	if (!client) {
 		client = createPublicClient({
 			chain: viemChains[chainKey],
-			// spaced retries: the Bittensor lite RPC rate-limits at 25 req/min
-			transport: http(undefined, { retryCount: 3, retryDelay: 2_000 }),
+			// fallback across providers; spaced retries — the Bittensor lite
+			// RPC rate-limits at 25 req/min
+			transport: fallback(
+				EVM_RPC_URLS[chainKey].map((url) =>
+					http(url, { retryCount: 2, retryDelay: 2_000 }),
+				),
+			),
 		}) as PublicClient;
 		clients.set(chainKey, client);
 	}
