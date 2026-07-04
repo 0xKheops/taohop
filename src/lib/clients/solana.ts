@@ -1,12 +1,18 @@
 import { createSolanaRpc } from "@solana/kit";
 
 /**
- * Public Solana RPC endpoints, in fallback order. Probed from a browser
- * origin (July 2026): publicnode = 200 + CORS *; rejected: mainnet-beta
- * (403 for browser apps), dRPC (Solana not on free tier), OnFinality (429
- * without key), Ankr (key required), Lava (403).
+ * Solana RPC endpoints, in fallback order: Alchemy (key locked to the
+ * production domain in the Alchemy dashboard — fails outside it, e.g. on
+ * localhost, and falls through to public endpoints) then publicnode.
+ * Probed from a browser origin (July 2026): publicnode = 200 + CORS * but
+ * rate-limits browsers via Cloudflare; rejected: mainnet-beta (403 for
+ * browser apps), dRPC (Solana not on free tier), OnFinality (429 without
+ * key), Ankr (key required), Lava (403).
  */
-const SOLANA_RPC_URLS = ["https://solana-rpc.publicnode.com"];
+const SOLANA_RPC_URLS = [
+	"https://solana-mainnet.g.alchemy.com/v2/eDrc1k0egqO8w6AWcXhLk",
+	"https://solana-rpc.publicnode.com",
+];
 
 const rpcs = SOLANA_RPC_URLS.map((url) => createSolanaRpc(url));
 
