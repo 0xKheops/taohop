@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { TOKENS, type TokenId } from "@/config/tokens";
 import { BridgeForm } from "@/features/bridge/BridgeForm";
+import { TransferHistory } from "@/features/bridge/TransferHistory";
 
 const tokenIds = Object.keys(TOKENS) as [TokenId, ...TokenId[]];
 
@@ -24,11 +25,16 @@ function Home() {
 	const navigate = Route.useNavigate();
 
 	return (
-		<BridgeForm
-			from={from}
-			to={to}
-			amount={amount}
-			onParamsChange={(params) => navigate({ search: params, replace: true })}
-		/>
+		<div className="flex w-full flex-col items-center gap-6">
+			<BridgeForm
+				from={from}
+				to={to}
+				amount={amount}
+				onParamsChange={(params) => navigate({ search: params, replace: true })}
+			/>
+			<TransferHistory
+				onResume={(params) => navigate({ search: params, replace: true })}
+			/>
+		</div>
 	);
 }

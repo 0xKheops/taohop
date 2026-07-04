@@ -16,6 +16,13 @@ import {
 	executeSubstrateToEvm,
 } from "./executors/native";
 import { executeUnwrapWtao, executeWrapTao } from "./executors/wrap";
+import {
+	addTransferRecord,
+	createTransferRecord,
+	markStepSuccess,
+	markTransferError,
+	patchTransferRecord,
+} from "./history";
 
 export type ExecutionStatus =
 	| { state: "idle" }
@@ -68,10 +75,24 @@ export const useBridgeExecutor = () => {
 			destinationAddress: string;
 			amount: bigint;
 		}) => {
+			const recordId = crypto.randomUUID();
+			addTransferRecord(
+				createTransferRecord({
+					id: recordId,
+					createdAt: Date.now(),
+					steps,
+					fromAddress: fromAccount.address,
+					destinationAddress,
+					amount,
+				}),
+			);
+
+			let currentStepIndex = 0;
 			try {
 				let result: ExecutionResult | undefined;
 
 				for (const [stepIndex, step] of steps.entries()) {
+					currentStepIndex = stepIndex;
 					const onPhase = (phase: ExecutionPhase) =>
 						setStatus({
 							state: "running",
@@ -167,16 +188,24 @@ export const useBridgeExecutor = () => {
 							break;
 						}
 					}
+
+					if (result) {
+						const stepResult = result;
+						patchTransferRecord(recordId, (r) =>
+							markStepSuccess(r, stepIndex, stepResult),
+						);
+					}
 				}
 
 				if (!result) throw new Error("Route has no steps");
 				setStatus({ state: "success", result });
 				queryClient.invalidateQueries({ queryKey: ["balance"] });
 			} catch (err) {
-				setStatus({
-					state: "error",
-					message: err instanceof Error ? err.message : String(err),
-				});
+				const message = err instanceof Error ? err.message : String(err);
+				patchTransferRecord(recordId, (r) =>
+					markTransferError(r, currentStepIndex, message),
+				);
+				setStatus({ state: "error", message });
 			}
 		},
 		[queryClient],
