@@ -10,9 +10,10 @@ export const AccountIcon: FC<{
 	account: WalletAccount;
 	className?: string;
 }> = ({ account, className }) => {
-	// Talisman renders its own orb identicon — match what users see in-wallet.
-	// Solana has no canonical identicon convention; the orb works on any seed.
-	if (account.walletId.includes("talisman") || account.platform === "solana") {
+	if (
+		account.walletId.toLowerCase().includes("talisman") ||
+		account.platform === "solana"
+	) {
 		return (
 			<TalismanOrb
 				seed={account.address}
