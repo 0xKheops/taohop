@@ -98,9 +98,9 @@ export const getRoute = (from: TokenId, to: TokenId): RouteResult => {
 			if (from === "bittensor:TAO")
 				return {
 					ok: false,
-					reason: "planned",
+					reason: "unsupported",
 					message:
-						"Direct Bittensor → Solana routes are coming soon. Bridge to Bittensor EVM first, then to Solana.",
+						"Bittensor → Solana requires two signers. Bridge to Bittensor EVM first, then from Bittensor EVM to Solana.",
 				};
 		}
 

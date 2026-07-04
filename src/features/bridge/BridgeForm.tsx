@@ -314,7 +314,7 @@ export const BridgeForm: FC<{
 
 				{!route.ok && (
 					<div
-						className={cnRouteMessage(route.reason)}
+						className="rounded-md border bg-muted p-3 text-sm text-muted-foreground"
 						role={route.reason === "invalid" ? "alert" : "note"}
 					>
 						{route.message}
@@ -403,8 +403,3 @@ export const BridgeForm: FC<{
 		</Card>
 	);
 };
-
-const cnRouteMessage = (reason: "unsupported" | "planned" | "invalid") =>
-	reason === "planned"
-		? "rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-sm"
-		: "rounded-md border bg-muted p-3 text-sm text-muted-foreground";

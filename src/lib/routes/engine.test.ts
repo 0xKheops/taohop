@@ -75,10 +75,12 @@ describe("getRoute", () => {
 		});
 	});
 
-	it("marks substrate → Solana as planned", () => {
+	it("marks substrate → Solana as unsupported with a workaround hint", () => {
 		expect(getRoute("bittensor:TAO", "solana:TAO")).toMatchObject({
 			ok: false,
-			reason: "planned",
+			reason: "unsupported",
+			message:
+				"Bittensor → Solana requires two signers. Bridge to Bittensor EVM first, then from Bittensor EVM to Solana.",
 		});
 	});
 

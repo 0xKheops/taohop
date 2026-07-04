@@ -22,10 +22,10 @@ export type RouteResult =
 	| {
 			ok: false;
 			/**
-			 * unsupported — no rail exists at all (e.g. plain TAO to Ethereum).
-			 * planned — rail exists, integration lands in a later milestone.
+			 * unsupported — no single-signer route exists (e.g. plain TAO to
+			 * Ethereum); the message may point at a manual workaround.
 			 * invalid — nonsensical selection (same token, unknown pair).
 			 */
-			reason: "unsupported" | "planned" | "invalid";
+			reason: "unsupported" | "invalid";
 			message: string;
 	  };
