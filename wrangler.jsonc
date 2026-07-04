@@ -2,6 +2,10 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "taohop",
   "compatibility_date": "2026-06-01",
+  // canonical host is the custom domain; keep branch preview URLs for CI
+  "workers_dev": false,
+  "preview_urls": true,
+  "routes": [{ "pattern": "taohop.kheops.wtf", "custom_domain": true }],
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application"
