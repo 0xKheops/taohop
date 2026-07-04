@@ -4,7 +4,7 @@ import { getRoute } from "./engine";
 describe("getRoute", () => {
 	it("resolves the substrate → EVM native leg", () => {
 		const result = getRoute("bittensor:TAO", "bittensorEvm:TAO");
-		expect(result).toEqual({
+		expect(result).toMatchObject({
 			ok: true,
 			steps: [
 				{
@@ -26,17 +26,38 @@ describe("getRoute", () => {
 		}
 	});
 
-	it("rejects same source and destination", () => {
-		const result = getRoute("bittensor:TAO", "bittensor:TAO");
-		expect(result).toMatchObject({ ok: false, reason: "invalid" });
+	it("resolves wrap and unwrap on Bittensor EVM", () => {
+		expect(getRoute("bittensorEvm:TAO", "bittensorEvm:wTAO")).toMatchObject({
+			ok: true,
+			steps: [{ kind: "wrap-tao", rail: "Native" }],
+		});
+		expect(getRoute("bittensorEvm:wTAO", "bittensorEvm:TAO")).toMatchObject({
+			ok: true,
+			steps: [{ kind: "unwrap-wtao", rail: "Native" }],
+		});
 	});
 
-	it("rejects token conversions", () => {
-		const result = getRoute("bittensor:TAO", "ethereum:vTAO");
-		expect(result).toMatchObject({ ok: false, reason: "unsupported" });
+	it("resolves wTAO → Solana as a single OFT step", () => {
+		expect(getRoute("bittensorEvm:wTAO", "solana:TAO")).toMatchObject({
+			ok: true,
+			steps: [{ kind: "layerzero-oft", rail: "LayerZero" }],
+		});
 	});
 
-	it("marks Solana TAO routes as planned", () => {
+	it("auto-composes native TAO → Solana as wrap + OFT", () => {
+		const result = getRoute("bittensorEvm:TAO", "solana:TAO");
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(result.steps.map((s) => s.kind)).toEqual([
+				"wrap-tao",
+				"layerzero-oft",
+			]);
+			expect(result.steps[0]?.to).toBe("bittensorEvm:wTAO");
+			expect(result.steps[1]?.from).toBe("bittensorEvm:wTAO");
+		}
+	});
+
+	it("marks substrate → Solana and Solana-sourced routes as planned", () => {
 		expect(getRoute("bittensor:TAO", "solana:TAO")).toMatchObject({
 			ok: false,
 			reason: "planned",
@@ -44,6 +65,28 @@ describe("getRoute", () => {
 		expect(getRoute("solana:TAO", "bittensorEvm:TAO")).toMatchObject({
 			ok: false,
 			reason: "planned",
+		});
+		expect(getRoute("solana:TAO", "bittensorEvm:wTAO")).toMatchObject({
+			ok: false,
+			reason: "planned",
+		});
+	});
+
+	it("rejects same source and destination", () => {
+		expect(getRoute("bittensor:TAO", "bittensor:TAO")).toMatchObject({
+			ok: false,
+			reason: "invalid",
+		});
+	});
+
+	it("rejects cross-asset conversions", () => {
+		expect(getRoute("bittensor:TAO", "ethereum:vTAO")).toMatchObject({
+			ok: false,
+			reason: "unsupported",
+		});
+		expect(getRoute("bittensorEvm:TAO", "bittensorEvm:vTAO")).toMatchObject({
+			ok: false,
+			reason: "unsupported",
 		});
 	});
 
@@ -55,17 +98,10 @@ describe("getRoute", () => {
 			["bittensorEvm:vTAO", "base:vTAO"],
 			["ethereum:vTAO", "bittensorEvm:vTAO"],
 		] as const) {
-			expect(getRoute(from, to)).toEqual({
+			expect(getRoute(from, to)).toMatchObject({
 				ok: true,
 				steps: [{ kind: "layerzero-oft", from, to, rail: "LayerZero" }],
 			});
 		}
-	});
-
-	it("rejects TAO ↔ vTAO conversion on the same chain", () => {
-		expect(getRoute("bittensorEvm:TAO", "bittensorEvm:vTAO")).toMatchObject({
-			ok: false,
-			reason: "unsupported",
-		});
 	});
 });

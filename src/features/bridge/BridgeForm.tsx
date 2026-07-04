@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { CHAINS } from "@/config/chains";
-import { VTAO_SHARED_DECIMALS } from "@/config/layerzero";
+import { OFT_SHARED_DECIMALS } from "@/config/layerzero";
 import { getToken, type TokenId } from "@/config/tokens";
 import { evmToBittensorMirror, shortenAddress } from "@/lib/address";
 import { formatAmount, parseAmount } from "@/lib/amount";
@@ -32,12 +32,14 @@ const PHASE_LABELS: Record<ExecutionPhase, string> = {
 };
 
 /**
- * TAO capped at 9 decimals (substrate rao precision); vTAO capped at the OFT
- * shared decimals (6) — the bridge truncates anything below.
+ * Input precision: routes crossing an OFT lane are capped at the OFT shared
+ * decimals (6) — the bridge truncates anything below. Otherwise TAO is capped
+ * at 9 (substrate rao precision), wTAO/vTAO at 6 for consistency.
  */
-const uiDecimals = (tokenId: TokenId) => {
-	const token = getToken(tokenId);
-	return token.symbol === "TAO" ? 9 : VTAO_SHARED_DECIMALS;
+const uiDecimalsFor = (fromId: TokenId, hasOftStep: boolean) => {
+	if (hasOftStep) return OFT_SHARED_DECIMALS;
+	const token = getToken(fromId);
+	return token.symbol === "TAO" ? 9 : OFT_SHARED_DECIMALS;
 };
 
 export const BridgeForm: FC<{
@@ -77,7 +79,9 @@ export const BridgeForm: FC<{
 	const { data: balance } = useTokenBalance(fromToken, fromAddress);
 	const { data: destBalance } = useTokenBalance(toToken, destAddress);
 
-	const decimals = uiDecimals(from);
+	const hasOftStep =
+		route.ok && route.steps.some((s) => s.kind === "layerzero-oft");
+	const decimals = uiDecimalsFor(from, hasOftStep);
 	const parsed = amount ? parseAmount(amount, decimals) : null;
 	// scale UI amount (TAO=9dp) up to the token's on-chain decimals
 	const amountBase =
@@ -124,15 +128,14 @@ export const BridgeForm: FC<{
 
 	const handleExecute = useCallback(() => {
 		if (!route.ok || !fromAccount || !destAddress || !amountBase) return;
-		const step = route.steps[0];
-		if (!step) return;
+		if (!route.steps.length) return;
 		if (
 			fromAccount.platform !== "polkadot" &&
 			fromAccount.platform !== "ethereum"
 		)
 			return;
 		execute({
-			step,
+			steps: route.steps,
 			fromAccount,
 			destinationAddress: destAddress,
 			amount: amountBase,
@@ -261,15 +264,22 @@ export const BridgeForm: FC<{
 				)}
 
 				{route.ok && (
-					<div className="rounded-md bg-muted p-3 text-xs text-muted-foreground">
-						<span className="mr-2 rounded bg-secondary px-1.5 py-0.5 font-medium text-secondary-foreground">
-							{route.steps[0]?.rail}
-						</span>
-						{route.steps[0]?.kind === "layerzero-oft"
-							? "Burn-and-mint via LayerZero — messaging fee paid in source-chain gas, delivery takes a few minutes."
-							: "Same-chain transfer — no bridge, no counterparty."}
+					<div className="flex flex-col gap-1 rounded-md bg-muted p-3 text-xs text-muted-foreground">
+						{route.steps.map((s, i) => (
+							<div key={s.kind}>
+								<span className="mr-2 rounded bg-secondary px-1.5 py-0.5 font-medium text-secondary-foreground">
+									{s.rail}
+								</span>
+								{route.steps.length > 1 && `${i + 1}. `}
+								{s.kind === "layerzero-oft"
+									? `${s.label} — burn-and-mint via LayerZero, fee paid in source-chain gas, delivery takes a few minutes.`
+									: s.kind === "wrap-tao" || s.kind === "unwrap-wtao"
+										? `${s.label} — 1:1, native TAO stays locked in the wTAO contract.`
+										: "Same-chain transfer — no bridge, no counterparty."}
+							</div>
+						))}
 						{mirrorInfo && (
-							<div className="mt-1">
+							<div>
 								Funds are delivered via the destination's mirror address{" "}
 								<span className="font-mono">{shortenAddress(mirrorInfo)}</span>{" "}
 								and appear as its EVM balance.
@@ -281,6 +291,8 @@ export const BridgeForm: FC<{
 				{status.state === "running" && (
 					<div className="flex items-center gap-2 text-sm">
 						<LoaderCircle className="size-4 animate-spin" />
+						{status.stepCount > 1 &&
+							`Step ${status.stepIndex + 1}/${status.stepCount} · ${status.label}: `}
 						{PHASE_LABELS[status.phase]}
 					</div>
 				)}

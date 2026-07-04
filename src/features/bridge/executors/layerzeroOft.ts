@@ -1,13 +1,11 @@
 import {
 	erc20Abi,
-	pad,
 	publicActions,
 	type TransactionReceipt,
 	type WalletClient,
 } from "viem";
 import { viemChains } from "@/config/chains";
-import { LZ_EIDS, type LzChainId, VTAO_OFT } from "@/config/layerzero";
-import { getToken } from "@/config/tokens";
+import type { LzChainId, OftDeployment } from "@/config/layerzero";
 import { getEvmPublicClient } from "@/lib/clients/viem";
 import type { ExecutionResult, OnPhase } from "./native";
 
@@ -94,7 +92,7 @@ const oftAbi = [
 
 const switchToChain = async (
 	walletClient: WalletClient,
-	chainId: LzChainId,
+	chainId: Exclude<LzChainId, "solana">,
 ) => {
 	const chain = viemChains[chainId];
 	const current = await walletClient.getChainId();
@@ -134,31 +132,36 @@ const waitForDelivery = async (txHash: string): Promise<void> => {
 };
 
 /**
- * vTAO between Bittensor EVM / Ethereum / Base via LayerZero OFT.
- * On Bittensor EVM the OFT is an adapter (lockbox) over the vTAO ERC-20 and
- * needs an exact-amount approval first; on Ethereum/Base the OFT is the token.
- * Caller must pre-floor `amount` to VTAO_SHARED_DECIMALS (6) — the OFT
- * truncates below that.
+ * Generic LayerZero OFT send from an EVM chain (vTAO between EVM chains,
+ * wTAO → Solana). Adapter (lockbox) OFTs get an exact-amount approval of the
+ * underlying first; native OFTs are the token itself. Caller must pre-floor
+ * `amount` to OFT_SHARED_DECIMALS (6) — the OFT truncates below that.
+ * `recipient` is the destination address already encoded as bytes32
+ * (left-padded H160 for EVM, raw pubkey bytes for Solana).
  */
 export const executeLayerZeroOft = async ({
 	walletClient,
+	oft,
+	underlying,
 	fromChain,
-	toChain,
-	destinationH160,
+	dstEid,
+	recipient,
 	amount,
 	onPhase,
 }: {
 	walletClient: WalletClient;
-	fromChain: LzChainId;
-	toChain: LzChainId;
-	destinationH160: `0x${string}`;
+	oft: OftDeployment;
+	/** ERC-20 pulled by an adapter OFT — required when approvalRequired. */
+	underlying?: `0x${string}`;
+	fromChain: Exclude<LzChainId, "solana">;
+	dstEid: number;
+	recipient: `0x${string}`;
 	amount: bigint;
 	onPhase: OnPhase;
 }): Promise<ExecutionResult> => {
 	const account = walletClient.account;
 	if (!account) throw new Error("Wallet client has no account");
 
-	const oft = VTAO_OFT[fromChain];
 	const chain = viemChains[fromChain];
 	const publicClient = getEvmPublicClient(fromChain);
 
@@ -166,12 +169,10 @@ export const executeLayerZeroOft = async ({
 	await switchToChain(walletClient, fromChain);
 
 	if (oft.approvalRequired) {
-		const underlying = getToken(`${fromChain}:vTAO`);
-		if (underlying.kind !== "erc20")
-			throw new Error("Missing vTAO token config");
+		if (!underlying) throw new Error("Missing underlying token for approval");
 
 		const allowance = await publicClient.readContract({
-			address: underlying.address,
+			address: underlying,
 			abi: erc20Abi,
 			functionName: "allowance",
 			args: [account.address, oft.address],
@@ -182,7 +183,7 @@ export const executeLayerZeroOft = async ({
 			const approveHash = await walletClient.writeContract({
 				account,
 				chain,
-				address: underlying.address,
+				address: underlying,
 				abi: erc20Abi,
 				functionName: "approve",
 				args: [oft.address, amount], // exact amount, never infinite
@@ -196,8 +197,8 @@ export const executeLayerZeroOft = async ({
 	}
 
 	const sendParam = {
-		dstEid: LZ_EIDS[toChain],
-		to: pad(destinationH160, { size: 32 }),
+		dstEid,
+		to: recipient,
 		amountLD: amount,
 		minAmountLD: amount, // amount is pre-floored to shared decimals — no slippage
 		extraOptions: "0x" as const, // enforced options are set on every lane

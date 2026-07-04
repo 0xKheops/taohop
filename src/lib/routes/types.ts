@@ -3,15 +3,18 @@ import type { TokenId } from "@/config/tokens";
 type RouteStepKind =
 	| "native-substrate-to-evm" // Balances.transfer_keep_alive to mirror ss58
 	| "native-evm-to-substrate" // BalanceTransfer precompile 0x…0800
-	| "layerzero-oft" // vTAO OFT send (M3)
-	| "wormhole-ntt"; // Solana TAO (M4)
+	| "wrap-tao" // wTAO.deposit() — native TAO → wTAO 1:1
+	| "unwrap-wtao" // wTAO.withdraw() — wTAO → native TAO 1:1
+	| "layerzero-oft"; // OFT send (vTAO between EVM chains, wTAO → Solana)
 
 export type RouteStep = {
 	kind: RouteStepKind;
 	from: TokenId;
 	to: TokenId;
+	/** Short human label shown in the multi-step progress UI. */
+	label: string;
 	/** Rail badge shown in the UI. */
-	rail: "Native" | "LayerZero" | "Wormhole";
+	rail: "Native" | "LayerZero";
 };
 
 export type RouteResult =

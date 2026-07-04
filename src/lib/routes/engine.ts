@@ -6,12 +6,16 @@ const step = (
 	kind: RouteStep["kind"],
 	from: TokenId,
 	to: TokenId,
+	label: string,
 	rail: RouteStep["rail"],
-): RouteStep => ({ kind, from, to, rail });
+): RouteStep => ({ kind, from, to, label, rail });
 
 /**
  * Resolve the ordered steps to move `from` → `to`, or explain why it can't be
  * done. Pure function — the correctness core of the app.
+ *
+ * Assets: TAO and wTAO are the same asset (1:1 WETH-style wrap on Bittensor
+ * EVM); vTAO is a distinct asset (liquid-staked TAO) and never converts.
  */
 export const getRoute = (from: TokenId, to: TokenId): RouteResult => {
 	if (from === to)
@@ -24,53 +28,123 @@ export const getRoute = (from: TokenId, to: TokenId): RouteResult => {
 	const fromToken = getToken(from);
 	const toToken = getToken(to);
 
-	if (fromToken.symbol !== toToken.symbol)
+	// ----- TAO / wTAO family (same asset) -----
+	const taoFamily = (symbol: string) => symbol === "TAO" || symbol === "wTAO";
+
+	if (taoFamily(fromToken.symbol) && taoFamily(toToken.symbol)) {
+		// Native leg: Bittensor substrate ↔ Bittensor EVM (same chain under the hood)
+		if (from === "bittensor:TAO" && to === "bittensorEvm:TAO")
+			return {
+				ok: true,
+				steps: [
+					step(
+						"native-substrate-to-evm",
+						from,
+						to,
+						"Transfer to EVM",
+						"Native",
+					),
+				],
+			};
+		if (from === "bittensorEvm:TAO" && to === "bittensor:TAO")
+			return {
+				ok: true,
+				steps: [
+					step(
+						"native-evm-to-substrate",
+						from,
+						to,
+						"Transfer to substrate",
+						"Native",
+					),
+				],
+			};
+
+		// Wrap / unwrap on Bittensor EVM
+		if (from === "bittensorEvm:TAO" && to === "bittensorEvm:wTAO")
+			return {
+				ok: true,
+				steps: [step("wrap-tao", from, to, "Wrap TAO", "Native")],
+			};
+		if (from === "bittensorEvm:wTAO" && to === "bittensorEvm:TAO")
+			return {
+				ok: true,
+				steps: [step("unwrap-wtao", from, to, "Unwrap wTAO", "Native")],
+			};
+
+		// To Solana: wTAO OFT lane (wrap first when starting from native TAO)
+		if (to === "solana:TAO") {
+			if (from === "bittensorEvm:wTAO")
+				return {
+					ok: true,
+					steps: [
+						step("layerzero-oft", from, to, "Bridge to Solana", "LayerZero"),
+					],
+				};
+			if (from === "bittensorEvm:TAO")
+				return {
+					ok: true,
+					steps: [
+						step("wrap-tao", from, "bittensorEvm:wTAO", "Wrap TAO", "Native"),
+						step(
+							"layerzero-oft",
+							"bittensorEvm:wTAO",
+							to,
+							"Bridge to Solana",
+							"LayerZero",
+						),
+					],
+				};
+			if (from === "bittensor:TAO")
+				return {
+					ok: false,
+					reason: "planned",
+					message:
+						"Direct Bittensor → Solana routes are coming soon. Bridge to Bittensor EVM first, then to Solana.",
+				};
+		}
+
+		// From Solana: needs the Solana-side OFT sender — next milestone
+		if (from === "solana:TAO")
+			return {
+				ok: false,
+				reason: "planned",
+				message: "Bridging from Solana is coming soon.",
+			};
+
 		return {
 			ok: false,
 			reason: "unsupported",
 			message:
-				"Token conversions (swaps, wrapping) are not supported — only bridging the same asset.",
+				"No trustless bridge exists for plain TAO on this chain. Bridge vTAO instead, or route through Bittensor EVM.",
 		};
+	}
 
-	// TAO native leg: Bittensor substrate ↔ Bittensor EVM (same chain under the hood)
-	if (from === "bittensor:TAO" && to === "bittensorEvm:TAO")
-		return {
-			ok: true,
-			steps: [step("native-substrate-to-evm", from, to, "Native")],
-		};
-	if (from === "bittensorEvm:TAO" && to === "bittensor:TAO")
-		return {
-			ok: true,
-			steps: [step("native-evm-to-substrate", from, to, "Native")],
-		};
-
-	// TAO ↔ Solana via Wormhole NTT — M4, pending source-topology verification
-	if (
-		fromToken.symbol === "TAO" &&
-		(fromToken.chainId === "solana" || toToken.chainId === "solana")
-	)
+	// ----- vTAO (distinct asset) -----
+	if (fromToken.symbol === "vTAO" && toToken.symbol === "vTAO") {
+		if (
+			isLzChain(fromToken.chainId) &&
+			isLzChain(toToken.chainId) &&
+			fromToken.chainId !== "solana" &&
+			toToken.chainId !== "solana"
+		)
+			return {
+				ok: true,
+				steps: [
+					step("layerzero-oft", from, to, "Bridge via LayerZero", "LayerZero"),
+				],
+			};
 		return {
 			ok: false,
-			reason: "planned",
-			message: "TAO ↔ Solana via Wormhole is coming soon.",
+			reason: "unsupported",
+			message: "vTAO is not deployed on this chain.",
 		};
+	}
 
-	// vTAO ↔ vTAO across EVM chains via LayerZero OFT
-	if (
-		fromToken.symbol === "vTAO" &&
-		isLzChain(fromToken.chainId) &&
-		isLzChain(toToken.chainId)
-	)
-		return {
-			ok: true,
-			steps: [step("layerzero-oft", from, to, "LayerZero")],
-		};
-
-	// Plain TAO to Ethereum/Base: no trustless rail exists
 	return {
 		ok: false,
 		reason: "unsupported",
 		message:
-			"No trustless bridge exists for plain TAO on this chain. Bridge vTAO instead, or wrap TAO into vTAO on tao.app first.",
+			"Token conversions (swaps, staking) are not supported — only bridging the same asset. TAO ↔ wTAO wrapping is available on Bittensor EVM.",
 	};
 };

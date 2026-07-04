@@ -1,6 +1,6 @@
 import type { ChainId } from "./chains";
 
-export type TokenSymbol = "TAO" | "vTAO";
+export type TokenSymbol = "TAO" | "wTAO" | "vTAO";
 
 export type TokenId = `${ChainId}:${TokenSymbol}`;
 
@@ -72,6 +72,17 @@ export const TOKENS: Partial<Record<TokenId, TokenDef>> = {
 		decimals: 9,
 		kind: "spl",
 		mint: TAO_SOLANA_MINT,
+		logo: "/img/tokens/tao.svg",
+	},
+	"bittensorEvm:wTAO": {
+		id: "bittensorEvm:wTAO",
+		symbol: "wTAO",
+		name: "Wrapped TAO",
+		chainId: "bittensorEvm",
+		decimals: 18,
+		kind: "erc20",
+		// WETH-style wrap of native TAO + LayerZero OFT to Solana (layerzero.ts)
+		address: "0x134f59E8B8637FD70ae12f263492B1dc73A25D1e",
 		logo: "/img/tokens/tao.svg",
 	},
 	"bittensorEvm:vTAO": {

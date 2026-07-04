@@ -1,8 +1,10 @@
 import type { EthereumAccount } from "@kheopskit/core/ethereum";
 import type { PolkadotAccount } from "@kheopskit/core/polkadot";
+import { getAddressEncoder, address as solanaAddress } from "@solana/kit";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
-import { isLzChain } from "@/config/layerzero";
+import { pad, toHex } from "viem";
+import { LZ_EIDS, VTAO_OFT, WTAO_OFT } from "@/config/layerzero";
 import { getToken } from "@/config/tokens";
 import type { RouteStep } from "@/lib/routes/types";
 import { executeLayerZeroOft } from "./executors/layerzeroOft";
@@ -12,12 +14,40 @@ import {
 	executeEvmToSubstrate,
 	executeSubstrateToEvm,
 } from "./executors/native";
+import { executeUnwrapWtao, executeWrapTao } from "./executors/wrap";
 
 export type ExecutionStatus =
 	| { state: "idle" }
-	| { state: "running"; phase: ExecutionPhase }
+	| {
+			state: "running";
+			stepIndex: number;
+			stepCount: number;
+			label: string;
+			phase: ExecutionPhase;
+	  }
 	| { state: "success"; result: ExecutionResult }
 	| { state: "error"; message: string };
+
+/** Destination address encoded as bytes32 for an OFT send. */
+const encodeRecipient = (
+	destinationChainId: string,
+	destinationAddress: string,
+): `0x${string}` =>
+	destinationChainId === "solana"
+		? toHex(
+				new Uint8Array(
+					getAddressEncoder().encode(solanaAddress(destinationAddress)),
+				),
+			)
+		: pad(destinationAddress as `0x${string}`, { size: 32 });
+
+const requireEthereum = (
+	account: PolkadotAccount | EthereumAccount,
+): EthereumAccount => {
+	if (account.platform !== "ethereum")
+		throw new Error("Ethereum account required");
+	return account;
+};
 
 export const useBridgeExecutor = () => {
 	const [status, setStatus] = useState<ExecutionStatus>({ state: "idle" });
@@ -27,65 +57,101 @@ export const useBridgeExecutor = () => {
 
 	const execute = useCallback(
 		async ({
-			step,
+			steps,
 			fromAccount,
 			destinationAddress,
 			amount,
 		}: {
-			step: RouteStep;
+			steps: RouteStep[];
 			fromAccount: PolkadotAccount | EthereumAccount;
 			destinationAddress: string;
 			amount: bigint;
 		}) => {
-			setStatus({ state: "running", phase: "signing" });
-			const onPhase = (phase: ExecutionPhase) =>
-				setStatus({ state: "running", phase });
-
 			try {
-				let result: ExecutionResult;
-				switch (step.kind) {
-					case "native-substrate-to-evm": {
-						if (fromAccount.platform !== "polkadot")
-							throw new Error("Substrate account required");
-						result = await executeSubstrateToEvm({
-							signer: fromAccount.polkadotSigner,
-							destinationH160: destinationAddress as `0x${string}`,
-							amountRao: amount,
-							onPhase,
+				let result: ExecutionResult | undefined;
+
+				for (const [stepIndex, step] of steps.entries()) {
+					const onPhase = (phase: ExecutionPhase) =>
+						setStatus({
+							state: "running",
+							stepIndex,
+							stepCount: steps.length,
+							label: step.label,
+							phase,
 						});
-						break;
+					onPhase("signing");
+
+					switch (step.kind) {
+						case "native-substrate-to-evm": {
+							if (fromAccount.platform !== "polkadot")
+								throw new Error("Substrate account required");
+							result = await executeSubstrateToEvm({
+								signer: fromAccount.polkadotSigner,
+								destinationH160: destinationAddress as `0x${string}`,
+								amountRao: amount,
+								onPhase,
+							});
+							break;
+						}
+						case "native-evm-to-substrate": {
+							result = await executeEvmToSubstrate({
+								walletClient: requireEthereum(fromAccount).client,
+								destinationSs58: destinationAddress,
+								amountWei: amount,
+								onPhase,
+							});
+							break;
+						}
+						case "wrap-tao": {
+							result = await executeWrapTao({
+								walletClient: requireEthereum(fromAccount).client,
+								amount,
+								onPhase,
+							});
+							break;
+						}
+						case "unwrap-wtao": {
+							result = await executeUnwrapWtao({
+								walletClient: requireEthereum(fromAccount).client,
+								amount,
+								onPhase,
+							});
+							break;
+						}
+						case "layerzero-oft": {
+							const fromToken = getToken(step.from);
+							const toToken = getToken(step.to);
+							const fromChain = fromToken.chainId;
+							if (fromChain === "solana" || !(fromChain in LZ_EIDS))
+								throw new Error("Unsupported OFT source chain");
+							const dstEid = LZ_EIDS[toToken.chainId as keyof typeof LZ_EIDS];
+							if (!dstEid) throw new Error("Unsupported OFT destination");
+
+							const isVtao = fromToken.symbol === "vTAO";
+							const oft = isVtao
+								? VTAO_OFT[fromChain as keyof typeof VTAO_OFT]
+								: WTAO_OFT;
+							const underlying =
+								isVtao && oft.approvalRequired && fromToken.kind === "erc20"
+									? fromToken.address
+									: undefined;
+
+							result = await executeLayerZeroOft({
+								walletClient: requireEthereum(fromAccount).client,
+								oft,
+								underlying,
+								fromChain: fromChain as Exclude<keyof typeof LZ_EIDS, "solana">,
+								dstEid,
+								recipient: encodeRecipient(toToken.chainId, destinationAddress),
+								amount,
+								onPhase,
+							});
+							break;
+						}
 					}
-					case "native-evm-to-substrate": {
-						if (fromAccount.platform !== "ethereum")
-							throw new Error("Ethereum account required");
-						result = await executeEvmToSubstrate({
-							walletClient: fromAccount.client,
-							destinationSs58: destinationAddress,
-							amountWei: amount,
-							onPhase,
-						});
-						break;
-					}
-					case "layerzero-oft": {
-						if (fromAccount.platform !== "ethereum")
-							throw new Error("Ethereum account required");
-						const fromChain = getToken(step.from).chainId;
-						const toChain = getToken(step.to).chainId;
-						if (!isLzChain(fromChain) || !isLzChain(toChain))
-							throw new Error("Chain not supported by LayerZero");
-						result = await executeLayerZeroOft({
-							walletClient: fromAccount.client,
-							fromChain,
-							toChain,
-							destinationH160: destinationAddress as `0x${string}`,
-							amount,
-							onPhase,
-						});
-						break;
-					}
-					default:
-						throw new Error(`Step not implemented yet: ${step.kind}`);
 				}
+
+				if (!result) throw new Error("Route has no steps");
 				setStatus({ state: "success", result });
 				queryClient.invalidateQueries({ queryKey: ["balance"] });
 			} catch (err) {

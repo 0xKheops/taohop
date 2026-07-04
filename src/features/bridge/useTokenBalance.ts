@@ -1,7 +1,9 @@
+import { address as solanaAddress } from "@solana/kit";
 import { useQuery } from "@tanstack/react-query";
 import { erc20Abi } from "viem";
 import type { TokenDef } from "@/config/tokens";
 import { getBittensorApi } from "@/lib/clients/papi";
+import { withSolanaRpc } from "@/lib/clients/solana";
 import { getEvmPublicClient } from "@/lib/clients/viem";
 
 const fetchBalance = async (
@@ -35,8 +37,22 @@ const fetchBalance = async (
 				args: [address as `0x${string}`],
 			});
 		}
-		case "spl":
-			return null; // M4
+		case "spl": {
+			const accounts = await withSolanaRpc((rpc) =>
+				rpc
+					.getTokenAccountsByOwner(
+						solanaAddress(address),
+						{ mint: solanaAddress(token.mint) },
+						{ encoding: "jsonParsed" },
+					)
+					.send(),
+			);
+			return accounts.value.reduce(
+				(sum, acc) =>
+					sum + BigInt(acc.account.data.parsed.info.tokenAmount.amount),
+				0n,
+			);
+		}
 	}
 };
 
