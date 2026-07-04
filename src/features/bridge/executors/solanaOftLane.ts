@@ -11,11 +11,13 @@ import { type AccountMeta, AccountRole, address } from "@solana/kit";
  * as the native-fee payer inside the endpoint CPI.
  *
  * Dumped from @layerzerolabs/oft-v2-solana-sdk 3.0.168 with two different
- * payers to prove which slots vary (scripts kept in the PR description).
+ * payers to prove which slots vary — regenerate with
+ * scripts/dump-oft-lane.mjs (instructions inside).
  * Byte-verified against the delivered mainnet transaction
  * WAqyRmxqz9QjsAfudjcS8Nq6M6YaC7JpjQDiaQ8aopvDPuhDoYjt5byJ7wFamU1Ystfm4JRumK2wYh5ogYWtkma.
  * If LayerZero rotates the lane's send library / executor / DVN config these
- * templates must be re-dumped — sends would fail preflight, not lose funds.
+ * templates must be re-dumped — quotes/sends fail loudly (the fee estimate
+ * simulates this quote on every render), funds are never at risk.
  */
 
 /** Anchor discriminator for oft::send. */
