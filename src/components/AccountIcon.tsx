@@ -10,8 +10,9 @@ export const AccountIcon: FC<{
 	account: WalletAccount;
 	className?: string;
 }> = ({ account, className }) => {
-	// Talisman renders its own orb identicon — match what users see in-wallet
-	if (account.walletId.includes("talisman")) {
+	// Talisman renders its own orb identicon — match what users see in-wallet.
+	// Solana has no canonical identicon convention; the orb works on any seed.
+	if (account.walletId.includes("talisman") || account.platform === "solana") {
 		return (
 			<TalismanOrb
 				seed={account.address}
@@ -20,8 +21,6 @@ export const AccountIcon: FC<{
 		);
 	}
 
-	// Solana addresses are neither hex nor ss58 — the blockies identicon works
-	// for any seed, so it covers both ethereum and solana accounts.
 	if (account.platform === "polkadot" && !isEvmAddress(account.address)) {
 		return (
 			<PolkadotIdenticon
