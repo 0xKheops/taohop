@@ -39,6 +39,10 @@ export const quoteSolanaOftFee = async ({
 		},
 		{ dstEid, to, amountLd, minAmountLd: amountLd },
 		{ oft: umiPk(SOLANA_TAO_OFT.program) },
+		undefined,
+		// quote simulates the send — without the lookup table it exceeds the
+		// legacy transaction size limit and fails
+		umiPk(SOLANA_TAO_OFT.lookupTable),
 	);
 	return nativeFee + 10_000n; // + tx fee margin
 };
@@ -120,6 +124,9 @@ export const executeSolanaOft = async ({
 		quoteAccounts,
 		sendParams,
 		programs,
+		undefined,
+		// quote simulates the send — needs the lookup table to fit
+		umiPk(SOLANA_TAO_OFT.lookupTable),
 	);
 
 	const wrapped = await oft.send(
