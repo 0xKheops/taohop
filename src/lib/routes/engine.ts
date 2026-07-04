@@ -104,13 +104,28 @@ export const getRoute = (from: TokenId, to: TokenId): RouteResult => {
 				};
 		}
 
-		// From Solana: needs the Solana-side OFT sender — next milestone
-		if (from === "solana:TAO")
+		// From Solana: OFT send back to Bittensor EVM — arrives as wTAO
+		if (from === "solana:TAO") {
+			if (to === "bittensorEvm:wTAO")
+				return {
+					ok: true,
+					steps: [
+						step(
+							"layerzero-oft",
+							from,
+							to,
+							"Bridge to Bittensor EVM",
+							"LayerZero",
+						),
+					],
+				};
 			return {
 				ok: false,
-				reason: "planned",
-				message: "Bridging from Solana is coming soon.",
+				reason: "unsupported",
+				message:
+					"TAO from Solana arrives as wTAO on Bittensor EVM — select wTAO · Bittensor EVM as destination, then unwrap to native TAO in a second transfer.",
 			};
+		}
 
 		return {
 			ok: false,

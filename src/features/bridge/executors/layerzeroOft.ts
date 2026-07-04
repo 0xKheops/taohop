@@ -105,7 +105,7 @@ const switchToChain = async (
 };
 
 /** Poll LayerZero Scan until the message is delivered on the destination. */
-const waitForDelivery = async (txHash: string): Promise<void> => {
+export const waitForDelivery = async (txHash: string): Promise<void> => {
 	const deadline = Date.now() + 10 * 60_000;
 	while (Date.now() < deadline) {
 		try {

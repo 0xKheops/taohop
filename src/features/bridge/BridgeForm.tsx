@@ -129,11 +129,6 @@ export const BridgeForm: FC<{
 	const handleExecute = useCallback(() => {
 		if (!route.ok || !fromAccount || !destAddress || !amountBase) return;
 		if (!route.steps.length) return;
-		if (
-			fromAccount.platform !== "polkadot" &&
-			fromAccount.platform !== "ethereum"
-		)
-			return;
 		execute({
 			steps: route.steps,
 			fromAccount,

@@ -57,16 +57,26 @@ describe("getRoute", () => {
 		}
 	});
 
-	it("marks substrate → Solana and Solana-sourced routes as planned", () => {
-		expect(getRoute("bittensor:TAO", "solana:TAO")).toMatchObject({
-			ok: false,
-			reason: "planned",
+	it("resolves Solana → Bittensor EVM as a single OFT step to wTAO", () => {
+		expect(getRoute("solana:TAO", "bittensorEvm:wTAO")).toMatchObject({
+			ok: true,
+			steps: [{ kind: "layerzero-oft", rail: "LayerZero" }],
 		});
+	});
+
+	it("explains that Solana TAO arrives as wTAO for other destinations", () => {
 		expect(getRoute("solana:TAO", "bittensorEvm:TAO")).toMatchObject({
 			ok: false,
-			reason: "planned",
+			reason: "unsupported",
 		});
-		expect(getRoute("solana:TAO", "bittensorEvm:wTAO")).toMatchObject({
+		expect(getRoute("solana:TAO", "bittensor:TAO")).toMatchObject({
+			ok: false,
+			reason: "unsupported",
+		});
+	});
+
+	it("marks substrate → Solana as planned", () => {
+		expect(getRoute("bittensor:TAO", "solana:TAO")).toMatchObject({
 			ok: false,
 			reason: "planned",
 		});

@@ -1,5 +1,6 @@
 import type { EthereumAccount } from "@kheopskit/core/ethereum";
 import type { PolkadotAccount } from "@kheopskit/core/polkadot";
+import type { SolanaAccount } from "@kheopskit/core/solana";
 import { getAddressEncoder, address as solanaAddress } from "@solana/kit";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
@@ -41,9 +42,9 @@ const encodeRecipient = (
 			)
 		: pad(destinationAddress as `0x${string}`, { size: 32 });
 
-const requireEthereum = (
-	account: PolkadotAccount | EthereumAccount,
-): EthereumAccount => {
+export type BridgeAccount = PolkadotAccount | EthereumAccount | SolanaAccount;
+
+const requireEthereum = (account: BridgeAccount): EthereumAccount => {
 	if (account.platform !== "ethereum")
 		throw new Error("Ethereum account required");
 	return account;
@@ -63,7 +64,7 @@ export const useBridgeExecutor = () => {
 			amount,
 		}: {
 			steps: RouteStep[];
-			fromAccount: PolkadotAccount | EthereumAccount;
+			fromAccount: BridgeAccount;
 			destinationAddress: string;
 			amount: bigint;
 		}) => {
@@ -122,10 +123,27 @@ export const useBridgeExecutor = () => {
 							const fromToken = getToken(step.from);
 							const toToken = getToken(step.to);
 							const fromChain = fromToken.chainId;
-							if (fromChain === "solana" || !(fromChain in LZ_EIDS))
+							if (!(fromChain in LZ_EIDS))
 								throw new Error("Unsupported OFT source chain");
 							const dstEid = LZ_EIDS[toToken.chainId as keyof typeof LZ_EIDS];
 							if (!dstEid) throw new Error("Unsupported OFT destination");
+
+							if (fromChain === "solana") {
+								if (fromAccount.platform !== "solana")
+									throw new Error("Solana account required");
+								const { executeSolanaOft } = await import(
+									"./executors/solanaOft"
+								);
+								result = await executeSolanaOft({
+									signer: fromAccount.signer,
+									ownerAddress: fromAccount.address,
+									dstEid,
+									recipientH160: destinationAddress as `0x${string}`,
+									amountLd: amount,
+									onPhase,
+								});
+								break;
+							}
 
 							const isVtao = fromToken.symbol === "vTAO";
 							const oft = isVtao

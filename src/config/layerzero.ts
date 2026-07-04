@@ -54,6 +54,20 @@ export const WTAO_OFT: OftDeployment = {
 };
 
 /**
+ * Solana side of the wTAO↔TAO OFT lane (verified on-chain July 2026):
+ * the OFT program mints/burns the canonical TAO mint; the store PDA is the
+ * mint authority. Escrow unused in mint/burn mode but required by the SDK.
+ * LOOKUP_TABLE = LayerZero's public ALT on Solana mainnet (send tx wouldn't
+ * fit in a legacy transaction otherwise).
+ */
+export const SOLANA_TAO_OFT = {
+	program: "tao3RyGP8XiiWQKmBzkiULmPoMewWjq65b46H4rTAQQ",
+	store: "8vJKzzabD9t15SwVa8aQUEJH37Xk5nS9eaQ4WgojZdDg",
+	escrow: "FeiTZPe7uJYJLux1CahrQnU94SjSXQ6zsdgobLm658LN",
+	lookupTable: "AokBxha6VMLLgf97B5VYHEtqztamWmYERBmmFvjuTzJB",
+} as const;
+
+/**
  * OFT shared decimals (both vTAO and wTAO lanes): amounts are truncated to
  * this precision on send. UI must cap bridged inputs at 6 decimals so nothing
  * is silently floored.
