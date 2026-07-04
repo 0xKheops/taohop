@@ -132,6 +132,47 @@ export const waitForDelivery = async (txHash: string): Promise<void> => {
 };
 
 /**
+ * Estimated total cost (source-chain native currency) of an EVM OFT send:
+ * LayerZero messaging fee + a ~300k gas budget for the send transaction.
+ */
+export const quoteEvmOftFee = async ({
+	oft,
+	fromChain,
+	dstEid,
+	recipient,
+	amount,
+}: {
+	oft: OftDeployment;
+	fromChain: Exclude<LzChainId, "solana">;
+	dstEid: number;
+	recipient: `0x${string}`;
+	amount: bigint;
+}): Promise<bigint> => {
+	const publicClient = getEvmPublicClient(fromChain);
+	const [{ nativeFee }, gasPrice] = await Promise.all([
+		publicClient.readContract({
+			address: oft.address,
+			abi: oftAbi,
+			functionName: "quoteSend",
+			args: [
+				{
+					dstEid,
+					to: recipient,
+					amountLD: amount,
+					minAmountLD: amount,
+					extraOptions: "0x",
+					composeMsg: "0x",
+					oftCmd: "0x",
+				},
+				false,
+			],
+		}),
+		publicClient.getGasPrice(),
+	]);
+	return nativeFee + 300_000n * gasPrice;
+};
+
+/**
  * Generic LayerZero OFT send from an EVM chain (vTAO between EVM chains,
  * wTAO → Solana). Adapter (lockbox) OFTs get an exact-amount approval of the
  * underlying first; native OFTs are the token itself. Caller must pre-floor

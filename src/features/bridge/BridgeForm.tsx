@@ -20,6 +20,7 @@ import type { ExecutionPhase } from "./executors/native";
 import { estimateEvmFee, estimateSubstrateFee } from "./executors/native";
 import { TokenSelect } from "./TokenSelect";
 import { useBridgeExecutor } from "./useBridgeExecutor";
+import { useFeeEstimate } from "./useFeeEstimate";
 import { useNativeBalance, useTokenBalance } from "./useTokenBalance";
 
 const PHASE_LABELS: Record<ExecutionPhase, string> = {
@@ -131,6 +132,15 @@ export const BridgeForm: FC<{
 
 	const insufficient =
 		amountBase !== null && balance != null && amountBase > balance;
+
+	const { data: feeEstimate } = useFeeEstimate(route, fromAddress, amountBase);
+	const insufficientFees =
+		feeEstimate != null &&
+		(paysFeesInBridgedToken
+			? balance != null &&
+				amountBase != null &&
+				amountBase + feeEstimate > balance
+			: feeBalance != null && feeEstimate > feeBalance);
 
 	const { status, execute, reset } = useBridgeExecutor();
 	const isRunning = status.state === "running";
@@ -320,6 +330,13 @@ export const BridgeForm: FC<{
 								Funds are delivered via the destination's mirror address{" "}
 								<span className="font-mono">{shortenAddress(mirrorInfo)}</span>{" "}
 								and appear as its EVM balance.
+							</div>
+						)}
+						{feeEstimate != null && (
+							<div className={insufficientFees ? "text-destructive" : ""}>
+								Est. fees: ~{formatAmount(feeEstimate, feeCurrency.decimals, 6)}{" "}
+								{feeCurrency.symbol}
+								{insufficientFees && " — insufficient balance for fees"}
 							</div>
 						)}
 					</div>

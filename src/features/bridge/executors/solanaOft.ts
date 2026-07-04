@@ -10,6 +10,39 @@ const SOLANA_RPC_URL = "https://solana-rpc.publicnode.com";
 const TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 const ATA_PROGRAM = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
 
+/** Estimated cost (lamports) of a Solana OFT send: LZ fee + tx fee margin. */
+export const quoteSolanaOftFee = async ({
+	ownerAddress,
+	dstEid,
+	recipientH160,
+	amountLd,
+}: {
+	ownerAddress: string;
+	dstEid: number;
+	recipientH160: `0x${string}`;
+	amountLd: bigint;
+}): Promise<bigint> => {
+	const [{ oft }, { createUmi }, { publicKey: umiPk }] = await Promise.all([
+		import("@layerzerolabs/oft-v2-solana-sdk"),
+		import("@metaplex-foundation/umi-bundle-defaults"),
+		import("@metaplex-foundation/umi"),
+	]);
+	const umi = createUmi(SOLANA_RPC_URL);
+	const to = new Uint8Array(32);
+	to.set(fromHex(recipientH160), 12);
+	const { nativeFee } = await oft.quote(
+		umi.rpc,
+		{
+			payer: umiPk(ownerAddress),
+			tokenMint: umiPk("taoC6xyv2v8tDLcev4uaGUgV4vdQsWJrGft2kcBRrBY"),
+			tokenEscrow: umiPk(SOLANA_TAO_OFT.escrow),
+		},
+		{ dstEid, to, amountLd, minAmountLd: amountLd },
+		{ oft: umiPk(SOLANA_TAO_OFT.program) },
+	);
+	return nativeFee + 10_000n; // + tx fee margin
+};
+
 /**
  * TAO from Solana back to Bittensor EVM via the wTAO OFT lane.
  * The LayerZero Solana SDK (umi/web3.js-v1 world) builds the send

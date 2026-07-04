@@ -1,6 +1,7 @@
-import { publicActions, type WalletClient } from "viem";
+import { encodeFunctionData, publicActions, type WalletClient } from "viem";
 import { bittensorEvm } from "@/config/chains";
 import { WTAO_OFT } from "@/config/layerzero";
+import { getEvmPublicClient } from "@/lib/clients/viem";
 import type { ExecutionResult, OnPhase } from "./native";
 
 const wtaoAbi = [
@@ -66,6 +67,41 @@ const runWtaoCall = async (
 		txHash,
 		explorerUrl: `https://evm.taostats.io/tx/${txHash}`,
 	};
+};
+
+/** Estimated gas cost (18-dec TAO) of a wrap or unwrap call. */
+export const estimateWrapFee = async (
+	fn: "deposit" | "withdraw",
+	from: `0x${string}`,
+	amount: bigint,
+): Promise<bigint> => {
+	const client = getEvmPublicClient("bittensorEvm");
+	const gasPrice = await client.getGasPrice();
+	let gas: bigint;
+	try {
+		gas = await client.estimateGas({
+			account: from,
+			to: WTAO_OFT.address,
+			...(fn === "deposit"
+				? {
+						value: 1n,
+						data: encodeFunctionData({
+							abi: wtaoAbi,
+							functionName: "deposit",
+						}),
+					}
+				: {
+						data: encodeFunctionData({
+							abi: wtaoAbi,
+							functionName: "withdraw",
+							args: [amount],
+						}),
+					}),
+		});
+	} catch {
+		gas = 100_000n; // estimation reverts on zero balances — conservative fallback
+	}
+	return gas * gasPrice;
 };
 
 /** Wrap native TAO into wTAO 1:1 (WETH-style deposit). Amount 18 dec. */
