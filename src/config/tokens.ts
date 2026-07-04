@@ -74,8 +74,17 @@ export const TOKENS: Partial<Record<TokenId, TokenDef>> = {
 		mint: TAO_SOLANA_MINT,
 		logo: "/img/tokens/tao.svg",
 	},
-	// vTAO on Bittensor EVM exists (OFT home) but its address is unverified —
-	// intentionally absent until confirmed (PRD §9).
+	"bittensorEvm:vTAO": {
+		id: "bittensorEvm:vTAO",
+		symbol: "vTAO",
+		name: "Virtual TAO",
+		chainId: "bittensorEvm",
+		decimals: 18,
+		kind: "erc20",
+		// underlying vTAO ERC-20; the OFT adapter (lockbox) lives in layerzero.ts
+		address: "0x31049849CCdD983D8F401077537438eaF12B12Af",
+		logo: "/img/tokens/vtao.svg",
+	},
 };
 
 export const getToken = (id: TokenId): TokenDef => {

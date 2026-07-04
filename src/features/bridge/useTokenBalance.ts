@@ -22,7 +22,12 @@ const fetchBalance = async (
 			return null;
 		}
 		case "erc20": {
-			if (token.chainId !== "ethereum" && token.chainId !== "base") return null;
+			if (
+				token.chainId !== "ethereum" &&
+				token.chainId !== "base" &&
+				token.chainId !== "bittensorEvm"
+			)
+				return null;
 			return getEvmPublicClient(token.chainId).readContract({
 				address: token.address,
 				abi: erc20Abi,

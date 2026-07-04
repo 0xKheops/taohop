@@ -47,10 +47,25 @@ describe("getRoute", () => {
 		});
 	});
 
-	it("marks vTAO OFT routes as planned", () => {
-		expect(getRoute("ethereum:vTAO", "base:vTAO")).toMatchObject({
+	it("resolves vTAO OFT routes between LayerZero chains", () => {
+		for (const [from, to] of [
+			["ethereum:vTAO", "base:vTAO"],
+			["base:vTAO", "ethereum:vTAO"],
+			["bittensorEvm:vTAO", "ethereum:vTAO"],
+			["bittensorEvm:vTAO", "base:vTAO"],
+			["ethereum:vTAO", "bittensorEvm:vTAO"],
+		] as const) {
+			expect(getRoute(from, to)).toEqual({
+				ok: true,
+				steps: [{ kind: "layerzero-oft", from, to, rail: "LayerZero" }],
+			});
+		}
+	});
+
+	it("rejects TAO ↔ vTAO conversion on the same chain", () => {
+		expect(getRoute("bittensorEvm:TAO", "bittensorEvm:vTAO")).toMatchObject({
 			ok: false,
-			reason: "planned",
+			reason: "unsupported",
 		});
 	});
 });

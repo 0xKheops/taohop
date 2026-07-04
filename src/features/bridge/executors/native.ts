@@ -28,9 +28,11 @@ const balanceTransferAbi = [
 
 export type ExecutionPhase =
 	| "switching-chain"
+	| "approving"
 	| "signing"
 	| "broadcasting"
 	| "in-block"
+	| "delivering"
 	| "finalized";
 
 export type OnPhase = (phase: ExecutionPhase) => void;

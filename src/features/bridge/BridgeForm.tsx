@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { CHAINS } from "@/config/chains";
+import { VTAO_SHARED_DECIMALS } from "@/config/layerzero";
 import { getToken, type TokenId } from "@/config/tokens";
 import { evmToBittensorMirror, shortenAddress } from "@/lib/address";
 import { formatAmount, parseAmount } from "@/lib/amount";
@@ -22,16 +23,21 @@ import { useTokenBalance } from "./useTokenBalance";
 
 const PHASE_LABELS: Record<ExecutionPhase, string> = {
 	"switching-chain": "Switching network…",
+	approving: "Waiting for approval…",
 	signing: "Waiting for signature…",
 	broadcasting: "Broadcasting…",
 	"in-block": "In block…",
+	delivering: "Delivering to destination…",
 	finalized: "Finalizing…",
 };
 
-/** TAO amounts are capped at 9 decimals everywhere so the substrate side never loses dust. */
+/**
+ * TAO capped at 9 decimals (substrate rao precision); vTAO capped at the OFT
+ * shared decimals (6) — the bridge truncates anything below.
+ */
 const uiDecimals = (tokenId: TokenId) => {
 	const token = getToken(tokenId);
-	return token.symbol === "TAO" ? 9 : token.decimals;
+	return token.symbol === "TAO" ? 9 : VTAO_SHARED_DECIMALS;
 };
 
 export const BridgeForm: FC<{
@@ -96,12 +102,15 @@ export const BridgeForm: FC<{
 
 	const handleMax = useCallback(async () => {
 		if (!fromAddress || balance == null) return;
+		// gas headroom only applies when the bridged token pays the fees
 		let fee = 0n;
 		try {
-			if (fromToken.chainId === "bittensor")
-				fee = await estimateSubstrateFee(fromAddress);
-			else if (fromToken.chainId === "bittensorEvm")
-				fee = await estimateEvmFee(fromAddress as `0x${string}`);
+			if (fromToken.kind === "native") {
+				if (fromToken.chainId === "bittensor")
+					fee = await estimateSubstrateFee(fromAddress);
+				else if (fromToken.chainId === "bittensorEvm")
+					fee = await estimateEvmFee(fromAddress as `0x${string}`);
+			}
 		} catch {
 			// fall through with fee = 0, user can still adjust manually
 		}
@@ -256,7 +265,9 @@ export const BridgeForm: FC<{
 						<span className="mr-2 rounded bg-secondary px-1.5 py-0.5 font-medium text-secondary-foreground">
 							{route.steps[0]?.rail}
 						</span>
-						Same-chain transfer — no bridge, no counterparty.
+						{route.steps[0]?.kind === "layerzero-oft"
+							? "Burn-and-mint via LayerZero — messaging fee paid in source-chain gas, delivery takes a few minutes."
+							: "Same-chain transfer — no bridge, no counterparty."}
 						{mirrorInfo && (
 							<div className="mt-1">
 								Funds are delivered via the destination's mirror address{" "}

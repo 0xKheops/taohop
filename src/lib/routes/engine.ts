@@ -1,3 +1,4 @@
+import { isLzChain } from "@/config/layerzero";
 import { getToken, type TokenId } from "@/config/tokens";
 import type { RouteResult, RouteStep } from "./types";
 
@@ -54,12 +55,15 @@ export const getRoute = (from: TokenId, to: TokenId): RouteResult => {
 			message: "TAO ↔ Solana via Wormhole is coming soon.",
 		};
 
-	// vTAO ↔ vTAO across EVM chains via LayerZero OFT — M3
-	if (fromToken.symbol === "vTAO")
+	// vTAO ↔ vTAO across EVM chains via LayerZero OFT
+	if (
+		fromToken.symbol === "vTAO" &&
+		isLzChain(fromToken.chainId) &&
+		isLzChain(toToken.chainId)
+	)
 		return {
-			ok: false,
-			reason: "planned",
-			message: "vTAO bridging via LayerZero is coming soon.",
+			ok: true,
+			steps: [step("layerzero-oft", from, to, "LayerZero")],
 		};
 
 	// Plain TAO to Ethereum/Base: no trustless rail exists

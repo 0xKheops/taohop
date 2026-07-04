@@ -2,7 +2,10 @@ import type { EthereumAccount } from "@kheopskit/core/ethereum";
 import type { PolkadotAccount } from "@kheopskit/core/polkadot";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
+import { isLzChain } from "@/config/layerzero";
+import { getToken } from "@/config/tokens";
 import type { RouteStep } from "@/lib/routes/types";
+import { executeLayerZeroOft } from "./executors/layerzeroOft";
 import {
 	type ExecutionPhase,
 	type ExecutionResult,
@@ -59,6 +62,23 @@ export const useBridgeExecutor = () => {
 							walletClient: fromAccount.client,
 							destinationSs58: destinationAddress,
 							amountWei: amount,
+							onPhase,
+						});
+						break;
+					}
+					case "layerzero-oft": {
+						if (fromAccount.platform !== "ethereum")
+							throw new Error("Ethereum account required");
+						const fromChain = getToken(step.from).chainId;
+						const toChain = getToken(step.to).chainId;
+						if (!isLzChain(fromChain) || !isLzChain(toChain))
+							throw new Error("Chain not supported by LayerZero");
+						result = await executeLayerZeroOft({
+							walletClient: fromAccount.client,
+							fromChain,
+							toChain,
+							destinationH160: destinationAddress as `0x${string}`,
+							amount,
 							onPhase,
 						});
 						break;
