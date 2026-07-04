@@ -12,11 +12,11 @@ importers:
         specifier: ^1.6.0
         version: 1.6.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@kheopskit/core':
-        specifier: ^5.0.1
-        version: 5.0.1(@solana/kit@7.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))(@wallet-standard/app@1.1.1)(@wallet-standard/base@1.1.1)(mipd@0.0.7(typescript@6.0.3))(polkadot-api@2.1.7(bufferutil@4.1.0)(esbuild@0.28.1)(rxjs@7.8.2)(utf-8-validate@6.0.6))(rxjs@7.8.2)(viem@2.54.1(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3))
+        specifier: ^5.1.0
+        version: 5.1.0(@solana/kit@7.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))(@wallet-standard/app@1.1.1)(@wallet-standard/base@1.1.1)(mipd@0.0.7(typescript@6.0.3))(polkadot-api@2.1.7(bufferutil@4.1.0)(esbuild@0.28.1)(rxjs@7.8.2)(utf-8-validate@6.0.6))(rxjs@7.8.2)(viem@2.54.1(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3))
       '@kheopskit/react':
-        specifier: ^5.0.1
-        version: 5.0.1(@kheopskit/core@5.0.1(@solana/kit@7.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))(@wallet-standard/app@1.1.1)(@wallet-standard/base@1.1.1)(mipd@0.0.7(typescript@6.0.3))(polkadot-api@2.1.7(bufferutil@4.1.0)(esbuild@0.28.1)(rxjs@7.8.2)(utf-8-validate@6.0.6))(rxjs@7.8.2)(viem@2.54.1(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(rxjs@7.8.2)
+        specifier: ^5.1.0
+        version: 5.1.0(@kheopskit/core@5.1.0(@solana/kit@7.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))(@wallet-standard/app@1.1.1)(@wallet-standard/base@1.1.1)(mipd@0.0.7(typescript@6.0.3))(polkadot-api@2.1.7(bufferutil@4.1.0)(esbuild@0.28.1)(rxjs@7.8.2)(utf-8-validate@6.0.6))(rxjs@7.8.2)(viem@2.54.1(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(rxjs@7.8.2)
       '@noble/hashes':
         specifier: ^2.2.0
         version: 2.2.0
@@ -787,8 +787,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
-  '@kheopskit/core@5.0.1':
-    resolution: {integrity: sha512-9QpfAaW2vxIn7qmZtp/w1Q4hi51A0It4WvFVLbzQdCoagc2+h1CFmQB7xIqEoBfyX9X9YwuDeCS9tp+diLMJSg==}
+  '@kheopskit/core@5.1.0':
+    resolution: {integrity: sha512-KCbBU78GO/bG2N+ctkMEakI5ehJzhrSoecFktYPUHPVT6mpmMLj9DKkJ03TESyp2MqG4A4BwCgTS1VL84+rAtg==}
     peerDependencies:
       '@reown/appkit': '>=1.7.0'
       '@solana/kit': '>=6.0.0'
@@ -814,10 +814,10 @@ packages:
       viem:
         optional: true
 
-  '@kheopskit/react@5.0.1':
-    resolution: {integrity: sha512-dilnzEEnPHMSjCN1V9OFD/OXN2Qfd+zN9VGBolFx5uSG1YEUQnFZBgjrAFRmW/X6bBeG5JC8KojL9lEbJCKzPA==}
+  '@kheopskit/react@5.1.0':
+    resolution: {integrity: sha512-3HX/vzIAaU4Tq1F0oDfV/cgfqibWcaDzilkOHto97+s8q7kPlEnjSCuMdmrCQYDJuQUmO70mQ7HuZzydUN2gJQ==}
     peerDependencies:
-      '@kheopskit/core': ^5.0.1
+      '@kheopskit/core': ^5.1.0
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
       rxjs: '>=7.0.0'
@@ -4127,7 +4127,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@kheopskit/core@5.0.1(@solana/kit@7.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))(@wallet-standard/app@1.1.1)(@wallet-standard/base@1.1.1)(mipd@0.0.7(typescript@6.0.3))(polkadot-api@2.1.7(bufferutil@4.1.0)(esbuild@0.28.1)(rxjs@7.8.2)(utf-8-validate@6.0.6))(rxjs@7.8.2)(viem@2.54.1(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3))':
+  '@kheopskit/core@5.1.0(@solana/kit@7.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))(@wallet-standard/app@1.1.1)(@wallet-standard/base@1.1.1)(mipd@0.0.7(typescript@6.0.3))(polkadot-api@2.1.7(bufferutil@4.1.0)(esbuild@0.28.1)(rxjs@7.8.2)(utf-8-validate@6.0.6))(rxjs@7.8.2)(viem@2.54.1(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3))':
     dependencies:
       '@noble/hashes': 1.8.0
       '@scure/base': 1.2.6
@@ -4141,9 +4141,9 @@ snapshots:
       polkadot-api: 2.1.7(bufferutil@4.1.0)(esbuild@0.28.1)(rxjs@7.8.2)(utf-8-validate@6.0.6)
       viem: 2.54.1(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3)
 
-  '@kheopskit/react@5.0.1(@kheopskit/core@5.0.1(@solana/kit@7.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))(@wallet-standard/app@1.1.1)(@wallet-standard/base@1.1.1)(mipd@0.0.7(typescript@6.0.3))(polkadot-api@2.1.7(bufferutil@4.1.0)(esbuild@0.28.1)(rxjs@7.8.2)(utf-8-validate@6.0.6))(rxjs@7.8.2)(viem@2.54.1(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(rxjs@7.8.2)':
+  '@kheopskit/react@5.1.0(@kheopskit/core@5.1.0(@solana/kit@7.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))(@wallet-standard/app@1.1.1)(@wallet-standard/base@1.1.1)(mipd@0.0.7(typescript@6.0.3))(polkadot-api@2.1.7(bufferutil@4.1.0)(esbuild@0.28.1)(rxjs@7.8.2)(utf-8-validate@6.0.6))(rxjs@7.8.2)(viem@2.54.1(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(rxjs@7.8.2)':
     dependencies:
-      '@kheopskit/core': 5.0.1(@solana/kit@7.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))(@wallet-standard/app@1.1.1)(@wallet-standard/base@1.1.1)(mipd@0.0.7(typescript@6.0.3))(polkadot-api@2.1.7(bufferutil@4.1.0)(esbuild@0.28.1)(rxjs@7.8.2)(utf-8-validate@6.0.6))(rxjs@7.8.2)(viem@2.54.1(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3))
+      '@kheopskit/core': 5.1.0(@solana/kit@7.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))(@wallet-standard/app@1.1.1)(@wallet-standard/base@1.1.1)(mipd@0.0.7(typescript@6.0.3))(polkadot-api@2.1.7(bufferutil@4.1.0)(esbuild@0.28.1)(rxjs@7.8.2)(utf-8-validate@6.0.6))(rxjs@7.8.2)(viem@2.54.1(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.4.3))
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
       rxjs: 7.8.2
