@@ -22,8 +22,8 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
-    "@kheopskit/core": "^5.3.0",
-    "@kheopskit/react": "^5.3.0",
+    "@kheopskit/core": "^6.0.0",
+    "@kheopskit/react": "^6.0.0",
     "@noble/hashes": "^2.4.0",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@solana/kit": "^7.1.1",
