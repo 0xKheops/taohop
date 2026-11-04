@@ -1,5 +1,6 @@
 import { MultiAddress } from "@polkadot-api/descriptors";
-import type { PolkadotSigner } from "polkadot-api";
+import type { TxCreator } from "polkadot-api";
+import { getFakeTxCreator } from "polkadot-api/tx-creator";
 import {
 	encodeFunctionData,
 	publicActions,
@@ -51,7 +52,7 @@ export const estimateSubstrateFee = async (
 		dest: MultiAddress.Id(fromSs58),
 		value: 1n,
 	});
-	return tx.getEstimatedFees(fromSs58);
+	return tx.getEstimatedFees(getFakeTxCreator(fromSs58));
 };
 
 /** Estimated fee (18-dec) for a BalanceTransfer precompile call. */
@@ -85,12 +86,12 @@ export const estimateEvmFee = async (
  * Amount in rao (9 dec).
  */
 export const executeSubstrateToEvm = async ({
-	signer,
+	txCreator,
 	destinationH160,
 	amountRao,
 	onPhase,
 }: {
-	signer: PolkadotSigner;
+	txCreator: TxCreator;
 	destinationH160: `0x${string}`;
 	amountRao: bigint;
 	onPhase: OnPhase;
@@ -104,11 +105,10 @@ export const executeSubstrateToEvm = async ({
 	onPhase("signing");
 
 	return new Promise<ExecutionResult>((resolve, reject) => {
-		const subscription = tx.signSubmitAndWatch(signer).subscribe({
+		const subscription = tx.createSubmitAndWatch(txCreator).subscribe({
 			next: (event) => {
 				if (event.type === "broadcasted") onPhase("broadcasting");
-				if (event.type === "txBestBlocksState" && event.found)
-					onPhase("in-block");
+				if (event.type === "inBestBlock") onPhase("in-block");
 				if (event.type === "finalized") {
 					onPhase("finalized");
 					if (!event.ok) {

@@ -113,7 +113,7 @@ export const useBridgeExecutor = () => {
 							if (fromAccount.platform !== "polkadot")
 								throw new Error("Substrate account required");
 							result = await executeSubstrateToEvm({
-								signer: fromAccount.polkadotSigner,
+								txCreator: fromAccount.txCreator,
 								destinationH160: destinationAddress as `0x${string}`,
 								amountRao: amount,
 								onPhase,
