@@ -5,10 +5,8 @@
     "src/components/ui/**/*.tsx",
     "src/config/*.ts"
   ],
-  "project": ["src/**/*.{ts,tsx}"],
+  "project": ["src/**/*.{ts,tsx,css}"],
   "ignoreDependencies": [
-    "tailwindcss",
-    "tw-animate-css",
     "@tailwindcss/typography",
     "@tanstack/react-form",
     "@testing-library/dom",
