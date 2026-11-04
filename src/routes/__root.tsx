@@ -3,8 +3,8 @@ import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { Github } from "lucide-react";
 import { ConnectButton } from "@/components/ConnectButton";
+import { GithubIcon } from "@/components/GithubIcon";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 import "../styles.css";
@@ -35,7 +35,7 @@ function RootComponent() {
 						aria-label="Source code on GitHub"
 						className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 					>
-						<Github className="size-4" />
+						<GithubIcon className="size-4" />
 					</a>
 					<ThemeToggle />
 					<ConnectButton />
