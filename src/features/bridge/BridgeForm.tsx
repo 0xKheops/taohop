@@ -96,16 +96,13 @@ export const BridgeForm: FC<{
 	const fromAddress = useSelectionAddress(fromSelection);
 	const destAddress = useSelectionAddress(destSelection);
 
-	const fromAccount = useMemo(
-		() =>
-			fromSelection?.kind === "account"
-				? accounts.find(
-						(a) =>
-							a.id === fromSelection.accountId && a.platform === fromPlatform,
-					)
-				: undefined,
-		[fromSelection, accounts, fromPlatform],
-	);
+	const fromAccount = useMemo(() => {
+		if (fromSelection?.kind !== "account") return undefined;
+		const account = accounts.find(
+			(a) => a.id === fromSelection.accountId && a.platform === fromPlatform,
+		);
+		return account?.isPlaceholder ? undefined : account;
+	}, [fromSelection, accounts, fromPlatform]);
 
 	const route = useMemo(() => getRoute(from, to), [from, to]);
 	const { data: balance } = useTokenBalance(fromToken, fromAddress);

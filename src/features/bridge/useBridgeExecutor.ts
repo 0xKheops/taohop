@@ -49,9 +49,14 @@ const encodeRecipient = (
 			)
 		: pad(destinationAddress as `0x${string}`, { size: 32 });
 
-export type BridgeAccount = PolkadotAccount | EthereumAccount | SolanaAccount;
+export type BridgeAccount = Exclude<
+	PolkadotAccount | EthereumAccount | SolanaAccount,
+	{ isPlaceholder: true }
+>;
 
-const requireEthereum = (account: BridgeAccount): EthereumAccount => {
+const requireEthereum = (
+	account: BridgeAccount,
+): Extract<BridgeAccount, { platform: "ethereum" }> => {
 	if (account.platform !== "ethereum")
 		throw new Error("Ethereum account required");
 	return account;
@@ -108,7 +113,7 @@ export const useBridgeExecutor = () => {
 							if (fromAccount.platform !== "polkadot")
 								throw new Error("Substrate account required");
 							result = await executeSubstrateToEvm({
-								signer: fromAccount.polkadotSigner,
+								txCreator: fromAccount.txCreator,
 								destinationH160: destinationAddress as `0x${string}`,
 								amountRao: amount,
 								onPhase,
