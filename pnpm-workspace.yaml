@@ -1,5 +1,13 @@
+minimumReleaseAge: 4320
+
 allowBuilds:
   esbuild: false
   lightningcss: false
   sharp: false
   workerd: false
+
+overrides:
+  # GHSA-ggr8-5vv4-36mx: write-package (via @polkadot-api/cli) pins deepmerge-ts ^7
+  write-package>deepmerge-ts: ^8.0.2
+  # GHSA-rj75-hqrm-r3gf: @tailwindcss/typography pins postcss-selector-parser 6.0.10
+  "@tailwindcss/typography>postcss-selector-parser": ^6.1.6
